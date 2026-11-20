@@ -1,0 +1,1352 @@
+name: Build Exam Tracker APK
+
+# Sirf ZIP (examtracker-update.zip) aur ye ek file GitHub par rakhni hai.
+# Ye workflow: ZIP kholkar website ki files repo mein daalta hai, phir Android app (APK) banata hai
+# aur GitHub ke Releases mein "Exam Tracker APK (latest)" naam se download link de deta hai.
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ZIP kholo aur website ki files repo mein daalo
+        run: |
+          shopt -s nullglob
+          zips=(*.zip)
+          if [ ${#zips[@]} -eq 0 ]; then
+            echo "Repo mein koi ZIP nahi hai; maujooda files se APK banegi."
+            exit 0
+          fi
+          rm -rf /tmp/z && mkdir /tmp/z
+          for z in "${zips[@]}"; do echo "Khol raha hoon: $z"; unzip -oq "$z" -d /tmp/z; done
+          idx=$(find /tmp/z -maxdepth 3 -name index.html -not -path "*/android/*" | head -1)
+          if [ -z "$idx" ]; then echo "ZIP ke andar index.html nahi mila"; exit 1; fi
+          src=$(dirname "$idx")
+          rm -rf "$src/.github" "$src/android" "$src/native" "$src/node_modules" "$src/www" "$src/__MACOSX" /tmp/z/__MACOSX
+          cp -a "$src"/. ./
+          rm -f "${zips[@]}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Koi badlaav nahi."
+          else
+            git commit -q -m "Tapasya ZIP se files update (auto)"
+            git push origin "HEAD:${GITHUB_REF_NAME}" || echo "Push nahi ho paya (Settings > Actions > Workflow permissions: Read and write chunein)."
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Prepare Web Files
+        run: |
+          mkdir -p www
+          cp index.html manifest.webmanifest sw.js icon.svg www/
+
+      - name: Initialize Capacitor Android Project
+        run: |
+          npm init -y
+          npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/local-notifications @capacitor/preferences
+          npx cap init "Exam Tracker" "com.cbse.examtracker" --web-dir www
+          npx cap add android
+          npx cap sync android
+
+      - name: Update Custom App Logo from icon.svg
+        run: |
+          sudo apt-get update && sudo apt-get install -y librsvg2-bin
+          rm -rf android/app/src/main/res/mipmap-anydpi-v26
+          for dir in mipmap-mdpi mipmap-hdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi; do
+            mkdir -p android/app/src/main/res/$dir
+            rsvg-convert -w 192 -h 192 icon.svg -o android/app/src/main/res/$dir/ic_launcher.png
+            rsvg-convert -w 192 -h 192 icon.svg -o android/app/src/main/res/$dir/ic_launcher_round.png
+            rsvg-convert -w 192 -h 192 icon.svg -o android/app/src/main/res/$dir/ic_launcher_foreground.png
+          done
+
+      - name: Inject Exam Tracker native code (3 widgets, timer notification)
+        run: |
+          set -e
+          rm -f android/app/src/main/java/com/cbse/examtracker/MainActivity.*
+          mkdir -p "$(dirname android/app/src/main/java/com/cbse/examtracker/DualCoreWidget.java)"
+          cat > android/app/src/main/java/com/cbse/examtracker/DualCoreWidget.java <<'EOF_0'
+          package com.cbse.examtracker;
+
+          import android.appwidget.AppWidgetManager;
+          import android.appwidget.AppWidgetProvider;
+          import android.content.Context;
+          import android.os.Bundle;
+
+          public class DualCoreWidget extends AppWidgetProvider {
+              @Override
+              public void onUpdate(Context context, AppWidgetManager manager, int[] ids) {
+                  ExamWidgetUtil.updateAll(context);
+              }
+
+              @Override
+              public void onAppWidgetOptionsChanged(Context context, AppWidgetManager manager, int id, Bundle options) {
+                  ExamWidgetUtil.updateAll(context);
+              }
+
+              @Override
+              public void onDeleted(Context context, int[] ids) {
+                  ExamWidgetUtil.clearConfig(context, ids);
+              }
+
+              @Override
+              public void onEnabled(Context context) {
+                  ExamWidgetUtil.updateAll(context);
+              }
+          }
+          EOF_0
+          mkdir -p "$(dirname android/app/src/main/java/com/cbse/examtracker/ExamNativePlugin.java)"
+          cat > android/app/src/main/java/com/cbse/examtracker/ExamNativePlugin.java <<'EOF_1'
+          package com.cbse.examtracker;
+
+          import android.app.Notification;
+          import android.appwidget.AppWidgetManager;
+          import android.content.ComponentName;
+          import android.app.NotificationChannel;
+          import android.app.NotificationManager;
+          import android.content.Context;
+          import android.os.Build;
+          import com.getcapacitor.JSObject;
+          import com.getcapacitor.Plugin;
+          import com.getcapacitor.PluginCall;
+          import com.getcapacitor.PluginMethod;
+          import com.getcapacitor.annotation.CapacitorPlugin;
+
+          /** Web app se Android ke kaam: widgets turant refresh, aur notification mein chalta hua study timer. */
+          @CapacitorPlugin(name = "ExamNative")
+          public class ExamNativePlugin extends Plugin {
+              private static final String CHANNEL = "exam_timer";
+              private static final int TIMER_ID = 9100;
+
+              /** Phone/launcher "widget seedha home screen par lagao" ka popup support karta hai ya nahi. */
+              @PluginMethod
+              public void canPinWidgets(PluginCall call) {
+                  boolean ok = false;
+                  try {
+                      ok = Build.VERSION.SDK_INT >= 26 && AppWidgetManager.getInstance(getContext()).isRequestPinAppWidgetSupported();
+                  } catch (Exception ignored) {
+                  }
+                  JSObject r = new JSObject();
+                  r.put("supported", ok);
+                  call.resolve(r);
+              }
+
+              /** type: main | dual | schedule. System ka "Add widget" popup kholta hai. */
+              @PluginMethod
+              public void pinWidget(PluginCall call) {
+                  boolean requested = false;
+                  try {
+                      String t = call.getString("type", "main");
+                      Class<?> cls = "dual".equals(t) ? DualCoreWidget.class : "schedule".equals(t) ? ScheduleWidget.class : MainCountdownWidget.class;
+                      AppWidgetManager m = AppWidgetManager.getInstance(getContext());
+                      if (Build.VERSION.SDK_INT >= 26 && m.isRequestPinAppWidgetSupported()) {
+                          requested = m.requestPinAppWidget(new ComponentName(getContext(), cls), null, null);
+                      }
+                  } catch (Exception ignored) {
+                  }
+                  JSObject r = new JSObject();
+                  r.put("requested", requested);
+                  call.resolve(r);
+              }
+
+              @PluginMethod
+              public void refreshWidgets(PluginCall call) {
+                  ExamWidgetUtil.updateAll(getContext());
+                  call.resolve();
+              }
+
+              @PluginMethod
+              public void timerStart(PluginCall call) {
+                  try {
+                      Context c = getContext();
+                      Long base = call.getLong("base");
+                      Boolean cd = call.getBoolean("countdown", false);
+                      boolean down = cd != null && cd;
+                      String title = call.getString("title", "Study Timer");
+                      NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
+                      Notification.Builder b;
+                      if (Build.VERSION.SDK_INT >= 26) {
+                          nm.createNotificationChannel(new NotificationChannel(CHANNEL, "Study timer", NotificationManager.IMPORTANCE_LOW));
+                          b = new Notification.Builder(c, CHANNEL);
+                      } else {
+                          b = new Notification.Builder(c);
+                      }
+                      b.setSmallIcon(R.drawable.ic_stat_exam)
+                              .setContentTitle(title)
+                              .setContentText(down ? "Countdown running" : "Stopwatch running")
+                              .setOngoing(true)
+                              .setOnlyAlertOnce(true)
+                              .setShowWhen(true)
+                              .setUsesChronometer(true)
+                              .setColor(0xFFF59E0B)
+                              .setContentIntent(ExamWidgetUtil.open(c, 104));
+                      if (base != null) b.setWhen(base);
+                      if (Build.VERSION.SDK_INT >= 24) b.setChronometerCountDown(down);
+                      nm.notify(TIMER_ID, b.build());
+                  } catch (Exception ignored) {
+                  }
+                  call.resolve();
+              }
+
+              @PluginMethod
+              public void timerStop(PluginCall call) {
+                  try {
+                      NotificationManager nm = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                      nm.cancel(TIMER_ID);
+                  } catch (Exception ignored) {
+                  }
+                  call.resolve();
+              }
+          }
+          EOF_1
+          mkdir -p "$(dirname android/app/src/main/java/com/cbse/examtracker/ExamWidgetConfigActivity.java)"
+          cat > android/app/src/main/java/com/cbse/examtracker/ExamWidgetConfigActivity.java <<'EOF_2'
+          package com.cbse.examtracker;
+
+          import android.app.Activity;
+          import android.appwidget.AppWidgetManager;
+          import android.content.Intent;
+          import android.os.Bundle;
+          import android.view.View;
+          import android.widget.ArrayAdapter;
+          import android.widget.Button;
+          import android.widget.LinearLayout;
+          import android.widget.Spinner;
+          import android.widget.TextView;
+          import java.util.ArrayList;
+          import java.util.LinkedHashSet;
+          import org.json.JSONArray;
+          import org.json.JSONObject;
+
+          /** Widget lagate (ya baad mein dobara configure karte) samay subject / paper pin karne ki screen. */
+          public class ExamWidgetConfigActivity extends Activity {
+              private int widgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
+
+              @Override
+              protected void onCreate(Bundle b) {
+                  super.onCreate(b);
+                  setResult(RESULT_CANCELED);
+                  Intent in = getIntent();
+                  if (in != null && in.getExtras() != null) {
+                      widgetId = in.getExtras().getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
+                  }
+                  if (widgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+                      finish();
+                      return;
+                  }
+                  String cls = "";
+                  try {
+                      cls = AppWidgetManager.getInstance(this).getAppWidgetInfo(widgetId).provider.getClassName();
+                  } catch (Exception ignored) {
+                  }
+                  final boolean dual = cls.endsWith("DualCoreWidget");
+
+                  JSONObject bundle = ExamWidgetUtil.bundle(this);
+                  JSONArray rows = bundle.optJSONArray("datesheet");
+                  final LinkedHashSet<String> subjects = new LinkedHashSet<String>();
+                  if (rows != null) {
+                      for (int i = 0; i < rows.length(); i++) {
+                          JSONObject o = rows.optJSONObject(i);
+                          if (o != null) subjects.add(o.optString("subject", ""));
+                      }
+                  }
+                  final ArrayList<String> items = new ArrayList<String>();
+                  if (!dual) items.add("Auto: next upcoming paper");
+                  items.addAll(subjects);
+
+                  LinearLayout root = new LinearLayout(this);
+                  root.setOrientation(LinearLayout.VERTICAL);
+                  int pad = (int) (18 * getResources().getDisplayMetrics().density);
+                  root.setPadding(pad, pad, pad, pad);
+
+                  TextView title = new TextView(this);
+                  title.setText(dual ? "Pin 2 papers for this widget" : "Pin a paper for this widget");
+                  title.setTextSize(18);
+                  title.setPadding(0, 0, 0, pad / 2);
+                  root.addView(title);
+
+                  if (subjects.isEmpty()) {
+                      TextView t = new TextView(this);
+                      t.setText("Open the Exam Tracker app once so your date sheet loads, then add the widget again.");
+                      root.addView(t);
+                  }
+
+                  final Spinner s1 = new Spinner(this);
+                  s1.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, items));
+                  root.addView(s1);
+                  final Spinner s2 = new Spinner(this);
+                  s2.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, items));
+                  if (dual) {
+                      if (items.size() > 1) s2.setSelection(1);
+                      root.addView(s2);
+                  }
+
+                  JSONArray cur = ExamWidgetUtil.config(this, widgetId);
+                  if (cur.length() > 0) {
+                      int i1 = items.indexOf(cur.optString(0));
+                      if (i1 >= 0) s1.setSelection(i1);
+                  }
+                  if (dual && cur.length() > 1) {
+                      int i2 = items.indexOf(cur.optString(1));
+                      if (i2 >= 0) s2.setSelection(i2);
+                  }
+
+                  Button save = new Button(this);
+                  save.setText("Save widget");
+                  save.setOnClickListener(new View.OnClickListener() {
+                      @Override
+                      public void onClick(View v) {
+                          JSONArray out = new JSONArray();
+                          String a = (String) s1.getSelectedItem();
+                          if (a != null && subjects.contains(a)) out.put(a);
+                          if (dual) {
+                              String c2 = (String) s2.getSelectedItem();
+                              if (out.length() == 0 && c2 != null) out.put("");
+                              if (c2 != null && subjects.contains(c2)) out.put(c2);
+                          }
+                          ExamWidgetUtil.saveConfig(ExamWidgetConfigActivity.this, widgetId, out);
+                          ExamWidgetUtil.updateAll(ExamWidgetConfigActivity.this);
+                          Intent res = new Intent();
+                          res.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId);
+                          setResult(RESULT_OK, res);
+                          finish();
+                      }
+                  });
+                  root.addView(save);
+                  setContentView(root);
+              }
+          }
+          EOF_2
+          mkdir -p "$(dirname android/app/src/main/java/com/cbse/examtracker/ExamWidgetUtil.java)"
+          cat > android/app/src/main/java/com/cbse/examtracker/ExamWidgetUtil.java <<'EOF_3'
+          package com.cbse.examtracker;
+
+          import android.app.AlarmManager;
+          import android.app.PendingIntent;
+          import android.appwidget.AppWidgetManager;
+          import android.content.ComponentName;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.net.Uri;
+          import android.content.SharedPreferences;
+          import android.os.Build;
+          import android.os.Bundle;
+          import android.os.SystemClock;
+          import android.view.View;
+          import android.widget.RemoteViews;
+          import org.json.JSONArray;
+          import org.json.JSONObject;
+
+          /** Teeno widgets ka sara data (app ki date sheet se) aur live countdown ka kaam. */
+          final class ExamWidgetUtil {
+              static final String ACTION_TICK = "com.cbse.examtracker.WIDGET_TICK";
+              static final long DAY = 86400000L;
+              private static final int FLAGS = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
+
+              static JSONObject bundle(Context c) {
+                  try {
+                      String raw = c.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE).getString("exam_widgets_bundle", null);
+                      if (raw != null) return new JSONObject(raw);
+                  } catch (Exception ignored) {
+                  }
+                  return new JSONObject();
+              }
+
+              /** Widget-wise chuna hua paper (subject ka naam). Khali = app ki setting / agla paper. */
+              static JSONArray config(Context c, int id) {
+                  try {
+                      return new JSONArray(c.getSharedPreferences("exam_widget_cfg", Context.MODE_PRIVATE).getString("w" + id, "[]"));
+                  } catch (Exception e) {
+                      return new JSONArray();
+                  }
+              }
+
+              static void saveConfig(Context c, int id, JSONArray a) {
+                  c.getSharedPreferences("exam_widget_cfg", Context.MODE_PRIVATE).edit().putString("w" + id, a.toString()).apply();
+              }
+
+              static void clearConfig(Context c, int[] ids) {
+                  SharedPreferences.Editor e = c.getSharedPreferences("exam_widget_cfg", Context.MODE_PRIVATE).edit();
+                  for (int id : ids) e.remove("w" + id);
+                  e.apply();
+              }
+
+              /** datesheet mein se subject naam wala paper (agla aane wala pehle, warna koi bhi). */
+              static JSONObject findPaper(JSONObject b, String subject) {
+                  JSONArray rows = b.optJSONArray("datesheet");
+                  if (rows == null || subject == null || subject.isEmpty()) return null;
+                  long now = System.currentTimeMillis();
+                  JSONObject any = null;
+                  for (int i = 0; i < rows.length(); i++) {
+                      JSONObject o = rows.optJSONObject(i);
+                      if (o == null || !subject.equals(o.optString("subject"))) continue;
+                      if (any == null) any = o;
+                      if (o.optLong("at", 0) > now) return o;
+                  }
+                  return any;
+              }
+
+              static boolean isSmall(Context c, int id) {
+                  try {
+                      Bundle o = AppWidgetManager.getInstance(c).getAppWidgetOptions(id);
+                      int w = o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250);
+                      int h = o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110);
+                      return h < 100 || w < 200;
+                  } catch (Exception e) {
+                      return false;
+                  }
+              }
+
+              static PendingIntent open(Context c, int req) {
+                  Intent i = c.getPackageManager().getLaunchIntentForPackage(c.getPackageName());
+                  if (i == null) i = new Intent();
+                  i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+                  return PendingIntent.getActivity(c, req, i, FLAGS);
+              }
+
+              static String minText(int m) {
+                  return m >= 60 ? (m / 60) + "h " + (m % 60) + "m" : m + "m";
+              }
+
+              /** days alag text mein, baaki ghante:minute:second live chronometer mein (har second chalta hai). */
+              static void bindCountdown(RemoteViews v, int daysId, int chronoId, long at) {
+                  long diff = at - System.currentTimeMillis();
+                  if (at <= 0 || diff <= 0) {
+                      v.setTextViewText(daysId, "0");
+                      v.setViewVisibility(chronoId, View.GONE);
+                      return;
+                  }
+                  long days = diff / DAY;
+                  long rem = diff % DAY;
+                  v.setTextViewText(daysId, String.valueOf(days));
+                  if (Build.VERSION.SDK_INT >= 24) {
+                      v.setViewVisibility(chronoId, View.VISIBLE);
+                      v.setChronometerCountDown(chronoId, true);
+                      v.setChronometer(chronoId, SystemClock.elapsedRealtime() + rem, null, true);
+                  } else {
+                      v.setViewVisibility(chronoId, View.GONE);
+                      v.setTextViewText(daysId, days + "d " + (rem / 3600000L) + "h " + ((rem / 60000L) % 60L) + "m");
+                  }
+              }
+
+              static RemoteViews buildMain(Context c, int id) {
+                  JSONObject b = bundle(c);
+                  boolean small = isSmall(c, id);
+                  RemoteViews v = new RemoteViews(c.getPackageName(), small ? R.layout.widget_main_small : R.layout.widget_main);
+                  String subject = b.optString("nextSubject", "Open the app once");
+                  String date = b.optString("nextDate", "");
+                  long at = b.optLong("nextAt", 0);
+                  JSONArray cfg = config(c, id);
+                  if (cfg.length() > 0) {
+                      JSONObject p = findPaper(b, cfg.optString(0));
+                      if (p != null) {
+                          subject = p.optString("subject", subject);
+                          date = p.optString("date", "") + " · " + p.optString("time", "");
+                          at = p.optLong("at", 0);
+                      }
+                  }
+                  v.setTextViewText(R.id.w1_subject, subject);
+                  bindCountdown(v, R.id.w1_days, R.id.w1_chrono, at);
+                  if (!small) {
+                      v.setTextViewText(R.id.w1_date, date);
+                      String mission = b.optString("upcomingCount", "");
+                      if (b.has("todayMin")) mission += "  ·  Studied today: " + minText(b.optInt("todayMin", 0));
+                      v.setTextViewText(R.id.w1_mission, mission);
+                  }
+                  v.setOnClickPendingIntent(R.id.w1_root, open(c, 101));
+                  return v;
+              }
+
+              private static void bindPin(RemoteViews v, JSONObject p, int sId, int dId, int daysId, int chronoId) {
+                  if (p == null) {
+                      v.setTextViewText(sId, "Not scheduled");
+                      v.setTextViewText(dId, "Pick a paper in app Settings");
+                      v.setTextViewText(daysId, "--");
+                      v.setViewVisibility(chronoId, View.GONE);
+                      return;
+                  }
+                  v.setTextViewText(sId, p.optString("subject", ""));
+                  v.setTextViewText(dId, p.optString("date", "") + " · " + p.optString("time", ""));
+                  bindCountdown(v, daysId, chronoId, p.optLong("at", 0));
+              }
+
+              static RemoteViews buildDual(Context c, int id) {
+                  JSONObject b = bundle(c);
+                  RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.widget_dual);
+                  JSONArray pin = b.optJSONArray("pinned");
+                  JSONObject p1 = pin == null ? null : pin.optJSONObject(0);
+                  JSONObject p2 = pin == null ? null : pin.optJSONObject(1);
+                  JSONArray cfg = config(c, id);
+                  if (cfg.length() > 0) {
+                      JSONObject x = findPaper(b, cfg.optString(0));
+                      if (x != null) p1 = x;
+                  }
+                  if (cfg.length() > 1) {
+                      JSONObject x = findPaper(b, cfg.optString(1));
+                      if (x != null) p2 = x;
+                  }
+                  bindPin(v, p1, R.id.w2_s1, R.id.w2_d1, R.id.w2_days1, R.id.w2_chrono1);
+                  bindPin(v, p2, R.id.w2_s2, R.id.w2_d2, R.id.w2_days2, R.id.w2_chrono2);
+                  v.setOnClickPendingIntent(R.id.w2_root, open(c, 102));
+                  return v;
+              }
+
+              static RemoteViews buildSchedule(Context c, int widgetId) {
+                  JSONObject b = bundle(c);
+                  RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.widget_schedule);
+                  Intent svc = new Intent(c, ScheduleWidgetService.class);
+                  svc.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId);
+                  svc.setData(Uri.parse(svc.toUri(Intent.URI_INTENT_SCHEME)));
+                  v.setRemoteAdapter(R.id.w3_list, svc);
+                  v.setEmptyView(R.id.w3_list, R.id.w3_empty);
+                  v.setTextViewText(R.id.w3_count, b.optString("upcomingCount", ""));
+                  v.setPendingIntentTemplate(R.id.w3_list, open(c, 103));
+                  v.setOnClickPendingIntent(R.id.w3_head, open(c, 105));
+                  return v;
+              }
+
+              static void updateAll(Context c) {
+                  try {
+                      AppWidgetManager m = AppWidgetManager.getInstance(c);
+                      int[] a = m.getAppWidgetIds(new ComponentName(c, MainCountdownWidget.class));
+                      for (int id : a) m.updateAppWidget(id, buildMain(c, id));
+                      int[] d = m.getAppWidgetIds(new ComponentName(c, DualCoreWidget.class));
+                      for (int id : d) m.updateAppWidget(id, buildDual(c, id));
+                      int[] s = m.getAppWidgetIds(new ComponentName(c, ScheduleWidget.class));
+                      for (int id : s) m.updateAppWidget(id, buildSchedule(c, id));
+                      if (s.length > 0) m.notifyAppWidgetViewDataChanged(s, R.id.w3_list);
+                  } catch (Exception ignored) {
+                  }
+                  armTick(c);
+              }
+
+              /** Din badalte hi (jab chronometer 0 par aata hai) widgets dobara bharne ka alarm; warna har 30 minute. */
+              static void armTick(Context c) {
+                  try {
+                      JSONObject b = bundle(c);
+                      long now = System.currentTimeMillis();
+                      long next = now + 30L * 60000L;
+                      java.util.ArrayList<Long> ats = new java.util.ArrayList<Long>();
+                      ats.add(b.optLong("nextAt", 0));
+                      JSONArray pin = b.optJSONArray("pinned");
+                      if (pin != null) {
+                          for (int i = 0; i < pin.length(); i++) {
+                              JSONObject p = pin.optJSONObject(i);
+                              if (p != null) ats.add(p.optLong("at", 0));
+                          }
+                      }
+                      for (long at : ats) {
+                          if (at > now) {
+                              long rem = (at - now) % DAY;
+                              long boundary = now + (rem == 0 ? DAY : rem);
+                              next = Math.min(next, boundary + 1500L);
+                          }
+                      }
+                      AlarmManager am = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
+                      Intent i = new Intent(c, MainCountdownWidget.class);
+                      i.setAction(ACTION_TICK);
+                      PendingIntent pi = PendingIntent.getBroadcast(c, 7, i, FLAGS);
+                      try {
+                          if (Build.VERSION.SDK_INT >= 31 && !am.canScheduleExactAlarms()) {
+                              am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next, pi);
+                          } else {
+                              am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next, pi);
+                          }
+                      } catch (SecurityException e) {
+                          am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next, pi);
+                      }
+                  } catch (Exception ignored) {
+                  }
+              }
+          }
+          EOF_3
+          mkdir -p "$(dirname android/app/src/main/java/com/cbse/examtracker/MainActivity.java)"
+          cat > android/app/src/main/java/com/cbse/examtracker/MainActivity.java <<'EOF_4'
+          package com.cbse.examtracker;
+
+          import android.os.Bundle;
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  registerPlugin(ExamNativePlugin.class);
+                  super.onCreate(savedInstanceState);
+              }
+          }
+          EOF_4
+          mkdir -p "$(dirname android/app/src/main/java/com/cbse/examtracker/MainCountdownWidget.java)"
+          cat > android/app/src/main/java/com/cbse/examtracker/MainCountdownWidget.java <<'EOF_5'
+          package com.cbse.examtracker;
+
+          import android.appwidget.AppWidgetManager;
+          import android.appwidget.AppWidgetProvider;
+          import android.content.Context;
+          import android.os.Bundle;
+          import android.content.Intent;
+
+          public class MainCountdownWidget extends AppWidgetProvider {
+              @Override
+              public void onUpdate(Context context, AppWidgetManager manager, int[] ids) {
+                  ExamWidgetUtil.updateAll(context);
+              }
+
+              @Override
+              public void onAppWidgetOptionsChanged(Context context, AppWidgetManager manager, int id, Bundle options) {
+                  ExamWidgetUtil.updateAll(context);
+              }
+
+              @Override
+              public void onDeleted(Context context, int[] ids) {
+                  ExamWidgetUtil.clearConfig(context, ids);
+              }
+
+              @Override
+              public void onEnabled(Context context) {
+                  ExamWidgetUtil.updateAll(context);
+              }
+
+              @Override
+              public void onReceive(Context context, Intent intent) {
+                  super.onReceive(context, intent);
+                  if (intent != null && ExamWidgetUtil.ACTION_TICK.equals(intent.getAction())) {
+                      ExamWidgetUtil.updateAll(context);
+                  }
+              }
+          }
+          EOF_5
+          mkdir -p "$(dirname android/app/src/main/java/com/cbse/examtracker/ScheduleWidget.java)"
+          cat > android/app/src/main/java/com/cbse/examtracker/ScheduleWidget.java <<'EOF_6'
+          package com.cbse.examtracker;
+
+          import android.appwidget.AppWidgetManager;
+          import android.appwidget.AppWidgetProvider;
+          import android.content.Context;
+          import android.os.Bundle;
+
+          public class ScheduleWidget extends AppWidgetProvider {
+              @Override
+              public void onUpdate(Context context, AppWidgetManager manager, int[] ids) {
+                  ExamWidgetUtil.updateAll(context);
+              }
+
+              @Override
+              public void onAppWidgetOptionsChanged(Context context, AppWidgetManager manager, int id, Bundle options) {
+                  ExamWidgetUtil.updateAll(context);
+              }
+
+              @Override
+              public void onDeleted(Context context, int[] ids) {
+                  ExamWidgetUtil.clearConfig(context, ids);
+              }
+
+              @Override
+              public void onEnabled(Context context) {
+                  ExamWidgetUtil.updateAll(context);
+              }
+          }
+          EOF_6
+          mkdir -p "$(dirname android/app/src/main/java/com/cbse/examtracker/ScheduleWidgetService.java)"
+          cat > android/app/src/main/java/com/cbse/examtracker/ScheduleWidgetService.java <<'EOF_7'
+          package com.cbse.examtracker;
+
+          import android.content.Context;
+          import android.content.Intent;
+          import android.widget.RemoteViews;
+          import android.widget.RemoteViewsService;
+          import org.json.JSONArray;
+          import org.json.JSONObject;
+
+          /** Full Date Sheet widget ki scrollable list: sabhi papers, jitne bhi aapne set kiye hain. */
+          public class ScheduleWidgetService extends RemoteViewsService {
+              @Override
+              public RemoteViewsFactory onGetViewFactory(Intent intent) {
+                  return new Factory(getApplicationContext());
+              }
+
+              static class Factory implements RemoteViewsService.RemoteViewsFactory {
+                  private final Context c;
+                  private JSONArray rows = new JSONArray();
+                  private long nextAt = 0;
+
+                  Factory(Context ctx) {
+                      c = ctx;
+                  }
+
+                  @Override
+                  public void onCreate() {
+                  }
+
+                  @Override
+                  public void onDataSetChanged() {
+                      JSONObject b = ExamWidgetUtil.bundle(c);
+                      JSONArray r = b.optJSONArray("datesheet");
+                      rows = r == null ? new JSONArray() : r;
+                      nextAt = b.optLong("nextAt", 0);
+                  }
+
+                  @Override
+                  public void onDestroy() {
+                  }
+
+                  @Override
+                  public int getCount() {
+                      return rows.length();
+                  }
+
+                  @Override
+                  public RemoteViews getViewAt(int position) {
+                      RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.widget_row);
+                      JSONObject o = rows.optJSONObject(position);
+                      if (o == null) return v;
+                      long at = o.optLong("at", 0);
+                      long diff = at - System.currentTimeMillis();
+                      String status;
+                      int color;
+                      if (diff <= 0) {
+                          status = "Done";
+                          color = 0xFF6B7280;
+                      } else if (diff < ExamWidgetUtil.DAY) {
+                          status = (diff / 3600000L) + "h left";
+                          color = 0xFFEF4444;
+                      } else {
+                          long d = (long) Math.ceil(diff / (double) ExamWidgetUtil.DAY);
+                          status = d + (d == 1 ? " day" : " days");
+                          color = at == nextAt ? 0xFFF59E0B : 0xFF4ADE80;
+                      }
+                      boolean isNext = at == nextAt && diff > 0;
+                      v.setTextViewText(R.id.row_date, o.optString("date", "") + "\n" + o.optString("time", ""));
+                      v.setTextColor(R.id.row_date, isNext ? 0xFFF59E0B : 0xFFA0AAB5);
+                      v.setTextViewText(R.id.row_subject, o.optString("subject", ""));
+                      v.setTextColor(R.id.row_subject, diff <= 0 ? 0xFF6B7280 : 0xFFFFFFFF);
+                      v.setTextViewText(R.id.row_status, status);
+                      v.setTextColor(R.id.row_status, color);
+                      v.setOnClickFillInIntent(R.id.row_root, new Intent());
+                      return v;
+                  }
+
+                  @Override
+                  public RemoteViews getLoadingView() {
+                      return null;
+                  }
+
+                  @Override
+                  public int getViewTypeCount() {
+                      return 1;
+                  }
+
+                  @Override
+                  public long getItemId(int position) {
+                      return position;
+                  }
+
+                  @Override
+                  public boolean hasStableIds() {
+                      return true;
+                  }
+              }
+          }
+          EOF_7
+          mkdir -p "$(dirname android/app/src/main/res/drawable/ic_stat_exam.xml)"
+          cat > android/app/src/main/res/drawable/ic_stat_exam.xml <<'EOF_8'
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="24dp"
+              android:height="24dp"
+              android:viewportWidth="24"
+              android:viewportHeight="24">
+              <path
+                  android:fillColor="#FFFFFFFF"
+                  android:pathData="M19,4h-1V2h-2v2H8V2H6v2H5C3.89,4 3,4.9 3,6v14c0,1.1 0.89,2 2,2h14c1.1,0 2,-0.9 2,-2V6C21,4.9 20.1,4 19,4zM19,20H5V10h14V20zM19,8H5V6h14V8zM12,12h5v5h-5z" />
+          </vector>
+          EOF_8
+          mkdir -p "$(dirname android/app/src/main/res/drawable/widget_bg.xml)"
+          cat > android/app/src/main/res/drawable/widget_bg.xml <<'EOF_9'
+          <?xml version="1.0" encoding="utf-8"?>
+          <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+              <solid android:color="#121417" />
+              <corners android:radius="18dp" />
+              <stroke android:width="1dp" android:color="#2A2F38" />
+          </shape>
+          EOF_9
+          mkdir -p "$(dirname android/app/src/main/res/layout/widget_dual.xml)"
+          cat > android/app/src/main/res/layout/widget_dual.xml <<'EOF_10'
+          <?xml version="1.0" encoding="utf-8"?>
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/w2_root"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@drawable/widget_bg"
+              android:orientation="vertical"
+              android:padding="12dp">
+
+              <TextView
+                  android:id="@+id/w2_s1"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:maxLines="1"
+                  android:textColor="#FFFFFF"
+                  android:textSize="14sp"
+                  android:textStyle="bold" />
+
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:gravity="center_vertical"
+                  android:orientation="horizontal">
+
+                  <TextView
+                      android:id="@+id/w2_days1"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:text="0"
+                      android:textColor="#4ADE80"
+                      android:textSize="22sp"
+                      android:textStyle="bold" />
+
+                  <TextView
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_marginStart="3dp"
+                      android:text="d"
+                      android:textColor="#A0AAB5"
+                      android:textSize="12sp" />
+
+                  <Chronometer
+                      android:id="@+id/w2_chrono1"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_marginStart="10dp"
+                      android:textColor="#4ADE80"
+                      android:textSize="20sp"
+                      android:textStyle="bold" />
+
+                  <TextView
+                      android:id="@+id/w2_d1"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_marginStart="10dp"
+                      android:gravity="end"
+                      android:maxLines="1"
+                      android:textColor="#A0AAB5"
+                      android:textSize="10sp" />
+              </LinearLayout>
+
+              <View
+                  android:layout_width="match_parent"
+                  android:layout_height="1dp"
+                  android:layout_marginTop="6dp"
+                  android:layout_marginBottom="6dp"
+                  android:background="#2A2F38" />
+
+              <TextView
+                  android:id="@+id/w2_s2"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:maxLines="1"
+                  android:textColor="#FFFFFF"
+                  android:textSize="14sp"
+                  android:textStyle="bold" />
+
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:gravity="center_vertical"
+                  android:orientation="horizontal">
+
+                  <TextView
+                      android:id="@+id/w2_days2"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:text="0"
+                      android:textColor="#F59E0B"
+                      android:textSize="22sp"
+                      android:textStyle="bold" />
+
+                  <TextView
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_marginStart="3dp"
+                      android:text="d"
+                      android:textColor="#A0AAB5"
+                      android:textSize="12sp" />
+
+                  <Chronometer
+                      android:id="@+id/w2_chrono2"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_marginStart="10dp"
+                      android:textColor="#F59E0B"
+                      android:textSize="20sp"
+                      android:textStyle="bold" />
+
+                  <TextView
+                      android:id="@+id/w2_d2"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_marginStart="10dp"
+                      android:gravity="end"
+                      android:maxLines="1"
+                      android:textColor="#A0AAB5"
+                      android:textSize="10sp" />
+              </LinearLayout>
+          </LinearLayout>
+          EOF_10
+          mkdir -p "$(dirname android/app/src/main/res/layout/widget_main.xml)"
+          cat > android/app/src/main/res/layout/widget_main.xml <<'EOF_11'
+          <?xml version="1.0" encoding="utf-8"?>
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/w1_root"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@drawable/widget_bg"
+              android:orientation="vertical"
+              android:padding="14dp">
+
+              <TextView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="CBSE 2027 · NEXT EXAM"
+                  android:textColor="#F59E0B"
+                  android:textSize="11sp"
+                  android:textStyle="bold" />
+
+              <TextView
+                  android:id="@+id/w1_subject"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="2dp"
+                  android:maxLines="1"
+                  android:textColor="#FFFFFF"
+                  android:textSize="17sp"
+                  android:textStyle="bold" />
+
+              <TextView
+                  android:id="@+id/w1_date"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:maxLines="1"
+                  android:textColor="#A0AAB5"
+                  android:textSize="11sp" />
+
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="6dp"
+                  android:gravity="center_vertical"
+                  android:orientation="horizontal">
+
+                  <TextView
+                      android:id="@+id/w1_days"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:text="0"
+                      android:textColor="#4ADE80"
+                      android:textSize="30sp"
+                      android:textStyle="bold" />
+
+                  <TextView
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_marginStart="4dp"
+                      android:text="days"
+                      android:textColor="#A0AAB5"
+                      android:textSize="12sp" />
+
+                  <Chronometer
+                      android:id="@+id/w1_chrono"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_marginStart="14dp"
+                      android:textColor="#4ADE80"
+                      android:textSize="26sp"
+                      android:textStyle="bold" />
+              </LinearLayout>
+
+              <TextView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="days  ·  hours:min:sec (live)"
+                  android:textColor="#6B7280"
+                  android:textSize="10sp" />
+
+              <TextView
+                  android:id="@+id/w1_mission"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="4dp"
+                  android:maxLines="2"
+                  android:textColor="#A0AAB5"
+                  android:textSize="11sp" />
+          </LinearLayout>
+          EOF_11
+          mkdir -p "$(dirname android/app/src/main/res/layout/widget_main_small.xml)"
+          cat > android/app/src/main/res/layout/widget_main_small.xml <<'EOF_12'
+          <?xml version="1.0" encoding="utf-8"?>
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/w1_root"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@drawable/widget_bg"
+              android:gravity="center_vertical"
+              android:orientation="horizontal"
+              android:padding="10dp">
+
+              <TextView
+                  android:id="@+id/w1_subject"
+                  android:layout_width="0dp"
+                  android:layout_height="wrap_content"
+                  android:layout_weight="1"
+                  android:maxLines="2"
+                  android:textColor="#FFFFFF"
+                  android:textSize="13sp"
+                  android:textStyle="bold" />
+
+              <TextView
+                  android:id="@+id/w1_days"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="0"
+                  android:textColor="#4ADE80"
+                  android:textSize="22sp"
+                  android:textStyle="bold" />
+
+              <TextView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_marginStart="2dp"
+                  android:text="d"
+                  android:textColor="#A0AAB5"
+                  android:textSize="11sp" />
+
+              <Chronometer
+                  android:id="@+id/w1_chrono"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_marginStart="8dp"
+                  android:textColor="#4ADE80"
+                  android:textSize="18sp"
+                  android:textStyle="bold" />
+          </LinearLayout>
+          EOF_12
+          mkdir -p "$(dirname android/app/src/main/res/layout/widget_row.xml)"
+          cat > android/app/src/main/res/layout/widget_row.xml <<'EOF_13'
+          <?xml version="1.0" encoding="utf-8"?>
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/row_root"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:gravity="center_vertical"
+              android:orientation="horizontal"
+              android:paddingTop="6dp"
+              android:paddingBottom="6dp">
+
+              <TextView
+                  android:id="@+id/row_date"
+                  android:layout_width="86dp"
+                  android:layout_height="wrap_content"
+                  android:maxLines="2"
+                  android:textColor="#A0AAB5"
+                  android:textSize="11sp" />
+
+              <TextView
+                  android:id="@+id/row_subject"
+                  android:layout_width="0dp"
+                  android:layout_height="wrap_content"
+                  android:layout_weight="1"
+                  android:maxLines="2"
+                  android:textColor="#FFFFFF"
+                  android:textSize="13sp"
+                  android:textStyle="bold" />
+
+              <TextView
+                  android:id="@+id/row_status"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_marginStart="6dp"
+                  android:textSize="11sp"
+                  android:textStyle="bold" />
+          </LinearLayout>
+          EOF_13
+          mkdir -p "$(dirname android/app/src/main/res/layout/widget_schedule.xml)"
+          cat > android/app/src/main/res/layout/widget_schedule.xml <<'EOF_14'
+          <?xml version="1.0" encoding="utf-8"?>
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/w3_root"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@drawable/widget_bg"
+              android:orientation="vertical"
+              android:padding="12dp">
+
+              <LinearLayout
+                  android:id="@+id/w3_head"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal">
+
+                  <TextView
+                      android:layout_width="0dp"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1"
+                      android:text="FULL DATE SHEET"
+                      android:textColor="#F59E0B"
+                      android:textSize="12sp"
+                      android:textStyle="bold" />
+
+                  <TextView
+                      android:id="@+id/w3_count"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:textColor="#A0AAB5"
+                      android:textSize="11sp" />
+              </LinearLayout>
+
+              <ListView
+                  android:id="@+id/w3_list"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  android:layout_marginTop="6dp"
+                  android:divider="#2A2F38"
+                  android:dividerHeight="1dp" />
+
+              <TextView
+                  android:id="@+id/w3_empty"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:gravity="center"
+                  android:text="Open the app once to load your date sheet"
+                  android:textColor="#A0AAB5"
+                  android:textSize="12sp" />
+          </LinearLayout>
+          EOF_14
+          mkdir -p "$(dirname android/app/src/main/res/values/widget_strings.xml)"
+          cat > android/app/src/main/res/values/widget_strings.xml <<'EOF_15'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <string name="widget_main_name">1. Exam Countdown &amp; Mission</string>
+              <string name="widget_dual_name">2. Pinned Papers (live countdown)</string>
+              <string name="widget_sched_name">3. Full Date Sheet</string>
+          </resources>
+          EOF_15
+          mkdir -p "$(dirname android/app/src/main/res/xml/widget_dual_info.xml)"
+          cat > android/app/src/main/res/xml/widget_dual_info.xml <<'EOF_16'
+          <?xml version="1.0" encoding="utf-8"?>
+          <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+              android:description="@string/widget_dual_name"
+              android:initialLayout="@layout/widget_dual"
+              android:minWidth="250dp"
+              android:minHeight="110dp"
+              android:minResizeWidth="110dp"
+              android:minResizeHeight="40dp"
+              android:maxResizeWidth="500dp"
+              android:maxResizeHeight="500dp"
+              android:targetCellWidth="4"
+              android:targetCellHeight="2"
+              android:resizeMode="horizontal|vertical"
+              android:configure="com.cbse.examtracker.ExamWidgetConfigActivity"
+              android:widgetFeatures="reconfigurable"
+              android:updatePeriodMillis="1800000"
+              android:widgetCategory="home_screen" />
+          EOF_16
+          mkdir -p "$(dirname android/app/src/main/res/xml/widget_main_info.xml)"
+          cat > android/app/src/main/res/xml/widget_main_info.xml <<'EOF_17'
+          <?xml version="1.0" encoding="utf-8"?>
+          <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+              android:description="@string/widget_main_name"
+              android:initialLayout="@layout/widget_main"
+              android:minWidth="250dp"
+              android:minHeight="110dp"
+              android:minResizeWidth="110dp"
+              android:minResizeHeight="40dp"
+              android:maxResizeWidth="500dp"
+              android:maxResizeHeight="500dp"
+              android:targetCellWidth="4"
+              android:targetCellHeight="2"
+              android:resizeMode="horizontal|vertical"
+              android:configure="com.cbse.examtracker.ExamWidgetConfigActivity"
+              android:widgetFeatures="reconfigurable"
+              android:updatePeriodMillis="1800000"
+              android:widgetCategory="home_screen" />
+          EOF_17
+          mkdir -p "$(dirname android/app/src/main/res/xml/widget_schedule_info.xml)"
+          cat > android/app/src/main/res/xml/widget_schedule_info.xml <<'EOF_18'
+          <?xml version="1.0" encoding="utf-8"?>
+          <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+              android:description="@string/widget_sched_name"
+              android:initialLayout="@layout/widget_schedule"
+              android:minWidth="250dp"
+              android:minHeight="180dp"
+              android:minResizeWidth="110dp"
+              android:minResizeHeight="40dp"
+              android:maxResizeWidth="500dp"
+              android:maxResizeHeight="500dp"
+              android:targetCellWidth="4"
+              android:targetCellHeight="3"
+              android:resizeMode="horizontal|vertical"
+              android:updatePeriodMillis="1800000"
+              android:widgetCategory="home_screen" />
+          EOF_18
+          cat > /tmp/patch_manifest.py <<'EOF_PM'
+          # AndroidManifest mein permissions, widgets, service aur notification icon jodta hai (dobara chalane par bhi safe).
+          p = "android/app/src/main/AndroidManifest.xml"
+          s = open(p, encoding="utf-8").read()
+
+          for perm in ("android.permission.POST_NOTIFICATIONS", "android.permission.SCHEDULE_EXACT_ALARM", "android.permission.USE_EXACT_ALARM"):
+              if perm not in s:
+                  s = s.replace("<application", '<uses-permission android:name="%s" />\n    <application' % perm, 1)
+
+          if "MainCountdownWidget" not in s:
+              block = """
+                  <meta-data android:name="com.capacitorjs.plugins.localnotifications.notification_icon" android:resource="@drawable/ic_stat_exam" />
+                  <meta-data android:name="com.capacitorjs.plugins.localnotifications.notification_icon_color" android:resource="@color/exam_amber" />
+                  <receiver android:name=".MainCountdownWidget" android:label="1. Exam Countdown" android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                          <action android:name="com.cbse.examtracker.WIDGET_TICK" />
+                      </intent-filter>
+                      <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_main_info" />
+                  </receiver>
+                  <receiver android:name=".DualCoreWidget" android:label="2. Pinned Papers" android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                      </intent-filter>
+                      <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_dual_info" />
+                  </receiver>
+                  <receiver android:name=".ScheduleWidget" android:label="3. Full Date Sheet" android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                      </intent-filter>
+                      <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_schedule_info" />
+                  </receiver>
+                  <activity android:name=".ExamWidgetConfigActivity" android:exported="true" android:theme="@android:style/Theme.DeviceDefault.Dialog">
+                      <intent-filter>
+                          <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+                      </intent-filter>
+                  </activity>
+                  <service android:name=".ScheduleWidgetService" android:permission="android.permission.BIND_REMOTEVIEWS" android:exported="false" />
+              """
+              s = s.replace("</application>", block + "\n    </application>", 1)
+
+          open(p, "w", encoding="utf-8").write(s)
+
+          # notification colour resource
+          import os
+          os.makedirs("android/app/src/main/res/values", exist_ok=True)
+          open("android/app/src/main/res/values/exam_colors.xml", "w", encoding="utf-8").write(
+              '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="exam_amber">#F59E0B</color>\n</resources>\n')
+          print("manifest patched")
+          EOF_PM
+          python3 /tmp/patch_manifest.py
+
+      - name: Fix Kotlin Duplicate Classes Conflict
+        run: |
+          cat << 'EOF' >> android/app/build.gradle
+
+          configurations.all {
+              resolutionStrategy {
+                  force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'
+                  force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'
+                  force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'
+              }
+          }
+          EOF
+
+      - name: Stable signing key (har APK purani ke upar update ho sake)
+        run: |
+          mkdir -p "$HOME/.android"
+          base64 -d > "$HOME/.android/debug.keystore" <<'EOF_KS'
+          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
+          EOF_KS
+
+      - name: Build Debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: APK ka naam
+        run: |
+          mkdir -p out
+          cp android/app/build/outputs/apk/debug/app-debug.apk out/ExamTracker.apk
+          ls -l out
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Exam-Tracker-APK
+          path: out/ExamTracker.apk
+
+      - name: Download link (GitHub Releases)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-latest
+          name: Exam Tracker APK (latest)
+          body: "Latest Exam Tracker APK. Neeche Assets se ExamTracker.apk download karein."
+          files: out/ExamTracker.apk
+          target_commitish: ${{ github.sha }}
