@@ -1,0 +1,39 @@
+{
+  "name": "CBSE Exam Command Center 2027",
+  "short_name": "Exam 2027",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#08090b",
+  "theme_color": "#08090b",
+  "description": "Offline CBSE Class 10 exam countdown, Science study command center, trackers and reminders",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Exam Countdown & Schedule",
+      "short_name": "Exams",
+      "url": "./#overview"
+    },
+    {
+      "name": "Science Command Center",
+      "short_name": "Science",
+      "url": "./#science"
+    },
+    {
+      "name": "Daily Study Planner",
+      "short_name": "Planner",
+      "url": "./#planner"
+    },
+    {
+      "name": "Mock Test Tracker",
+      "short_name": "Mocks",
+      "url": "./#mocks"
+    }
+  ]
+}

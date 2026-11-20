@@ -1,0 +1,2733 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#08090b">
+<meta name="description" content="Offline CBSE Class 10 exam countdown, Science study command center, NCERT/Practice/Revision trackers, daily planner, mock tests and reminders">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>Exam Command Center 2027</title>
+<style>
+:root{
+  --bg:#08090b;
+  --panel:#111316;
+  --panel2:#171a1f;
+  --line:#282c33;
+  --muted:#969da8;
+  --text:#f5f6f7;
+  --orange:#ff7a28;
+  --red:#ed3b32;
+  --green:#35c98a;
+  --blue:#4da3ff;
+  --purple:#a87ffb;
+  --amber:#f5b942;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  background:radial-gradient(ellipse at 12% -10%,#302016 0,transparent 34%),var(--bg);
+  color:var(--text);
+  font:14px/1.5 Inter,system-ui,-apple-system,Segoe UI,sans-serif;
+  padding-bottom:calc(74px + env(safe-area-inset-bottom,0px));
+}
+button,input,select,textarea{font:inherit}
+button{
+  cursor:pointer;
+  border:1px solid var(--line);
+  background:#1b1e23;
+  color:var(--text);
+  border-radius:10px;
+  padding:9px 13px;
+  transition:filter .15s,border-color .15s,background .15s;
+}
+button.primary{background:linear-gradient(135deg,var(--orange),#e94a28);border:0;font-weight:750;color:#fff}
+button.sm{padding:6px 10px;font-size:12px;border-radius:8px}
+button.ghost{background:transparent}
+button.danger{border-color:#5a2626;color:#ff8f8f;background:#231214}
+button:hover{filter:brightness(1.12)}
+
+header{
+  height:64px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 max(18px,calc((100vw - 1220px)/2));
+  position:sticky;
+  top:0;
+  background:#090a0ded;
+  backdrop-filter:blur(14px);
+  z-index:20;
+}
+.brand{font-weight:900;letter-spacing:.08em;display:flex;align-items:center;gap:8px}
+.brand span{color:var(--orange)}
+.topright{display:flex;gap:8px;align-items:center}
+.pill{font-size:11px;color:#ffb27f;border:1px solid #754126;background:#2a1a12;padding:5px 9px;border-radius:30px;white-space:nowrap}
+
+/* Navigation Tabs */
+.navwrap{
+  border-bottom:1px solid var(--line);
+  background:#0b0c0fe6;
+  backdrop-filter:blur(10px);
+  position:sticky;
+  top:64px;
+  z-index:18;
+}
+.navtabs{
+  max-width:1220px;
+  margin:0 auto;
+  padding:8px 18px;
+  display:flex;
+  gap:6px;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.navtabs::-webkit-scrollbar{display:none}
+.tabbtn{
+  background:#13161b;
+  border:1px solid var(--line);
+  color:var(--muted);
+  padding:7px 13px;
+  border-radius:999px;
+  font-size:12.5px;
+  font-weight:650;
+  white-space:nowrap;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+.tabbtn.active{
+  background:linear-gradient(135deg,#2d1a10,#1d1410);
+  border-color:#a84d25;
+  color:#ffb27f;
+}
+.tabbadge{
+  background:#242932;
+  color:#d3d8e0;
+  font-size:10px;
+  padding:1px 6px;
+  border-radius:99px;
+}
+.tabbtn.active .tabbadge{background:#ff7a2833;color:#ffb27f}
+
+.wrap{max-width:1220px;margin:20px auto;padding:0 18px}
+.view{display:none}
+.view.active{display:block;animation:fadeIn .18s ease}
+@keyframes fadeIn{from{opacity:.4;transform:translateY(3px)}to{opacity:1;transform:none}}
+
+.hero{display:grid;grid-template-columns:1.55fr .85fr;gap:16px}
+.panel{
+  background:linear-gradient(145deg,#15181d,#0e1013);
+  border:1px solid var(--line);
+  border-radius:17px;
+  box-shadow:0 12px 35px #0005;
+}
+.mainhero{padding:25px;position:relative;overflow:hidden}
+.mainhero:after{content:"";position:absolute;width:250px;height:250px;border-radius:50%;background:#f66c2420;filter:blur(35px);right:-80px;top:-100px;pointer-events:none}
+.eyebrow{font-size:11px;letter-spacing:.16em;color:var(--orange);font-weight:800;text-transform:uppercase}
+.mainhero h1{font-size:clamp(23px,4vw,37px);line-height:1.12;margin:9px 0 5px}
+.sub{color:var(--muted)}
+.countgrid{display:flex;gap:9px;margin:20px 0 16px;flex-wrap:wrap}
+.unit{min-width:76px;background:#080a0d;border:1px solid #30343b;border-radius:12px;padding:11px 12px;text-align:center}
+.unit strong{display:block;font-size:clamp(23px,3.8vw,35px);font-variant-numeric:tabular-nums;line-height:1.2}
+.unit small{font-size:10px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+.herofoot{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.nexttag{background:#24160f;border:1px solid #62391f;color:#ffb27f;padding:7px 10px;border-radius:9px;font-weight:700}
+
+.sidebox{padding:20px;display:flex;flex-direction:column;justify-content:space-between}
+.sidebox h3{margin:6px 0}
+.progress{height:7px;background:#282c33;border-radius:20px;overflow:hidden;margin:10px 0}
+.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--orange),var(--red));width:0;transition:width .3s ease}
+.progress.green i{background:linear-gradient(90deg,#25a972,var(--green))}
+.progress.blue i{background:linear-gradient(90deg,#307fe2,var(--blue))}
+.statrow{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:14px}
+.stat{background:#0b0d10;border:1px solid var(--line);padding:11px;border-radius:11px}
+.stat b{font-size:20px;display:block}
+.stat small{color:var(--muted);font-size:11.5px}
+
+/* Dual Countdown Strip */
+.dualgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.dualcard{padding:18px 20px;position:relative;overflow:hidden}
+.dualcard.maths{border-color:#2f4566;background:linear-gradient(145deg,#121822,#0d1015)}
+.dualcard.science{border-color:#265442;background:linear-gradient(145deg,#111d19,#0d1110)}
+.dualtop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.dualtitle{font-size:17px;font-weight:800;margin:4px 0 2px}
+.dualbadge{font-size:11px;padding:4px 9px;border-radius:99px;font-weight:700;white-space:nowrap}
+.maths .dualbadge{background:#1b2c45;color:#89bfff;border:1px solid #35588a}
+.science .dualbadge{background:#17362b;color:#78e5b5;border:1px solid #2e6b53}
+.miniunits{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+.miniunit{background:#080a0d;border:1px solid #282e37;border-radius:10px;padding:8px 6px;text-align:center}
+.miniunit strong{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.miniunit small{font-size:9.5px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+
+.sectionhead{display:flex;justify-content:space-between;align-items:center;margin:24px 2px 12px;gap:10px;flex-wrap:wrap}
+.sectionhead h2{font-size:15px;letter-spacing:.04em;margin:0;text-transform:uppercase}
+.sectionhead span{color:var(--muted);font-size:12px}
+
+.grid2{display:grid;grid-template-columns:1.3fr .7fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.schedule{padding:18px}
+.examlist{display:grid;gap:8px}
+.exam{display:grid;grid-template-columns:92px 1fr auto;gap:12px;align-items:center;padding:12px;background:#0b0d10;border:1px solid var(--line);border-radius:12px}
+.exam.active{border-color:#a84d25;background:linear-gradient(90deg,#25160f,#0d0f12)}
+.date{font-weight:800;color:#ffad75}
+.date small{display:block;color:var(--muted);font-weight:500;font-size:10px}
+.subject{font-weight:750}
+.exammeta{color:var(--muted);font-size:11px}
+.status{font-size:10px;border-radius:20px;padding:5px 8px;background:#20252b;color:#b8c0ca;font-weight:700}
+.status.next{background:#3a2014;color:#ffb27f}
+
+.tools{padding:18px}
+.toolrow{display:flex;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}
+.toolrow:last-child{border:0}
+.toolicon{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:#25170f;color:#ff9b59;font-size:17px;flex-shrink:0}
+.toolrow div:nth-child(2){flex:1}
+.toolrow b{display:block}
+.toolrow small{color:var(--muted)}
+.reminders{padding:18px}
+.remgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.remcard{background:#0b0d10;border:1px solid var(--line);padding:12px;border-radius:12px}
+.remcard b{display:block;font-size:16px}
+.remcard small{color:var(--muted)}
+
+/* Roadmap Phases */
+.phasecard{padding:18px;display:flex;flex-direction:column;justify-content:space-between;gap:12px}
+.phasehead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.phasepill{font-size:11px;padding:3px 9px;border-radius:99px;font-weight:700}
+.p1{background:#2c1b12;color:#ffb27f;border:1px solid #6b3b20}
+.p2{background:#18293f;color:#8cc2ff;border:1px solid #2e5382}
+.p3{background:#17362a;color:#7be6b8;border:1px solid #2a6950}
+.roadmapbar{display:flex;height:12px;border-radius:99px;overflow:hidden;background:#1d2128;border:1px solid var(--line);margin:10px 0}
+.roadmapbar div{height:100%;transition:width .3s}
+
+/* Filter Bar & Pills */
+.filterbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.chip{background:#12151a;border:1px solid var(--line);color:var(--muted);padding:6px 12px;border-radius:99px;font-size:12px;font-weight:600}
+.chip.active{background:#281911;border-color:#9e4a24;color:#ffb27f}
+.searchinput{background:#0b0d10;border:1px solid var(--line);color:var(--text);padding:7px 12px;border-radius:10px;min-width:210px;flex:1}
+
+/* Chapter Cards */
+.chaptergrid{display:grid;gap:12px}
+.chapcard{padding:16px 18px}
+.chaptop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.chapbadges{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:5px}
+.disc{font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:6px;letter-spacing:.05em;text-transform:uppercase}
+.disc.Chemistry{background:#2d1d3b;color:#cfa8ff;border:1px solid #573675}
+.disc.Biology{background:#163327;color:#78e5b5;border:1px solid #2a634b}
+.disc.Physics{background:#182b42;color:#86beff;border:1px solid #2e5482}
+.prio{font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:6px}
+.prio.High{background:#381919;color:#ff8f8f;border:1px solid #6e2d2d}
+.prio.Medium{background:#332712;color:#ffd075;border:1px solid #664d20}
+.prio.Low{background:#1d242c;color:#a5b2c2;border:1px solid #35404d}
+.chapname{font-size:16px;font-weight:800}
+.chapmeta{font-size:12px;color:var(--muted);margin-top:3px;display:flex;gap:12px;flex-wrap:wrap}
+.chapcontrols{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+
+.trackrows{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid #20242b}
+.trackgroup{background:#0b0d10;border:1px solid #22262e;border-radius:11px;padding:10px 11px}
+.trackgrouptitle{font-size:10.5px;font-weight:800;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between}
+.checkgrid{display:flex;flex-wrap:wrap;gap:6px}
+.chk{
+  display:inline-flex;align-items:center;gap:5px;
+  background:#14171d;border:1px solid #2c313b;
+  padding:5px 8px;border-radius:8px;font-size:11.5px;color:#cfd5de;cursor:pointer;user-select:none;
+}
+.chk input{accent-color:var(--orange);margin:0;cursor:pointer}
+.chk.done{background:#162b22;border-color:#2d664d;color:#9cf0c8}
+
+/* Planner */
+.taskitem{display:flex;align-items:center;gap:10px;padding:11px 12px;background:#0b0d10;border:1px solid var(--line);border-radius:11px;margin-bottom:8px}
+.taskitem.done{opacity:.65}
+.taskitem.done .tasktitle{text-decoration:line-through;color:var(--muted)}
+.tasktitle{font-weight:650;flex:1}
+.taskmeta{font-size:11px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
+
+/* Mock Tests */
+.mockcard{padding:15px 16px;background:#0b0d10;border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+.scorebadge{font-size:16px;font-weight:850;padding:6px 11px;border-radius:10px;background:#1a222d;border:1px solid #324359;color:#8cc2ff;white-space:nowrap}
+.chartbox{display:flex;align-items:flex-end;gap:10px;height:140px;padding:14px 10px 6px;background:#090b0e;border:1px solid var(--line);border-radius:12px;margin-top:12px}
+.barcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end}
+.barfill{width:100%;max-width:38px;background:linear-gradient(180deg,var(--orange),#c93e1d);border-radius:6px 6px 2px 2px;min-height:6px;transition:height .3s}
+.barlbl{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:64px}
+
+/* Bottom Mobile Nav */
+.bottomnav{
+  display:none;
+  position:fixed;
+  bottom:0;left:0;right:0;
+  background:#0a0b0ef5;
+  backdrop-filter:blur(14px);
+  border-top:1px solid var(--line);
+  padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));
+  z-index:25;
+  justify-content:space-around;
+}
+.bnavbtn{
+  background:transparent;border:0;color:var(--muted);
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  font-size:10px;padding:4px 6px;border-radius:8px;flex:1;
+}
+.bnavbtn span{font-size:16px}
+.bnavbtn.active{color:var(--orange);font-weight:700}
+
+footer{color:#6e7580;text-align:center;padding:28px 10px;font-size:11px}
+
+/* Modals */
+.modal{position:fixed;inset:0;background:#000c;display:none;place-items:center;padding:16px;z-index:40}
+.modal.show{display:grid}
+.dialog{width:min(540px,100%);background:#14171b;border:1px solid #343941;border-radius:16px;padding:20px;max-height:88vh;overflow:auto}
+.dialog h2{margin-top:0;font-size:18px}
+.field{display:grid;gap:5px;margin:11px 0}
+.field label{color:var(--muted);font-size:12px}
+.field input,.field select,.field textarea{width:100%;background:#090b0e;color:white;border:1px solid #363b44;border-radius:9px;padding:10px}
+.fieldrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.notice{padding:11px;background:#1b211f;border:1px solid #294b3b;color:#a8e8c8;border-radius:10px;font-size:12px}
+
+@media(max-width:900px){
+  .trackrows{grid-template-columns:1fr}
+  .grid3,.grid4{grid-template-columns:1fr 1fr}
+}
+@media(max-width:760px){
+  .wrap{margin:14px auto;padding:0 12px}
+  .hero,.grid2,.dualgrid{grid-template-columns:1fr}
+  .mainhero{padding:20px}
+  .sidebox{min-height:170px}
+  .exam{grid-template-columns:78px 1fr auto;gap:8px;padding:10px}
+  .exammeta{font-size:10px}
+  .status{padding:4px 6px}
+  .unit{min-width:66px;padding:9px}
+  .sectionhead{margin-top:18px}
+  .bottomnav{display:flex}
+  .grid3,.grid4,.fieldrow{grid-template-columns:1fr}
+}
+@media(max-width:390px){
+  .exam{grid-template-columns:68px 1fr}
+  .exam .status{grid-column:2;justify-self:start}
+  .topright .pill{display:none}
+}
+
+/* ===== v4: timer, subjects, dynamic chips ===== */
+.timerface{font-size:clamp(46px,14vw,78px);font-weight:800;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:.02em;margin:8px 0 2px;color:var(--text)}
+.timerface.run{color:var(--green)}.timerface.paused{color:var(--amber)}
+.timerbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.timerbtns button{flex:1;min-width:110px;padding:12px}
+.seg{display:flex;gap:6px;margin:12px 0 8px}.seg button{flex:1}.seg button.active{background:var(--orange);border-color:var(--orange);color:#fff;font-weight:700}
+.presets{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.presets .chip{cursor:pointer}
+.tfield{display:grid;gap:4px;margin:8px 0}.tfield label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.tfield input,.tfield select{background:#090b0e;color:#fff;border:1px solid #363b44;border-radius:9px;padding:10px}
+.subbar{margin:9px 0}.subbar .row{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:3px}
+.sess{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}.sess:last-child{border:0}.sess b{display:block}.sess small{color:var(--muted)}
+.disc.Custom{background:#2a2a33;color:#d6d6e0;border:1px solid #4a4a58}
+.exrow{border:1px solid var(--line);border-radius:12px;padding:10px;margin:10px 0}
+.exrow .top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+.bottomnav .bnavbtn{min-width:0}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">EXAM <span>COMMAND</span> CENTER</div>
+  <div class="topright">
+    <span class="pill" id="net">● OFFLINE READY</span>
+    <button id="installBtn" hidden>Install App</button>
+    <button id="settingsBtn">⚙ Settings</button>
+  </div>
+</header>
+
+<nav class="navwrap" aria-label="Command Center Sections">
+  <div class="navtabs" id="navTabs">
+    <button class="tabbtn active" data-tab="overview">🎯 Overview &amp; Countdowns</button>
+    <button class="tabbtn" data-tab="roadmap">🗺️ Science Roadmap <span class="tabbadge">50+15+Final</span></button>
+    <button class="tabbtn" data-tab="chapters">📚 Chapters, NCERT &amp; Practice <span class="tabbadge" id="navChapBadge">0/13</span></button>
+    <button class="tabbtn" data-tab="revision">🔁 Revision Tracker <span class="tabbadge" id="navRevBadge">0%</span></button>
+    <button class="tabbtn" data-tab="planner">📅 Daily Planner <span class="tabbadge" id="navTaskBadge">0</span></button>
+    <button class="tabbtn" data-tab="timer">⏱️ Study Timer <span class="tabbadge" id="navTimerBadge">0m</span></button>
+    <button class="tabbtn" data-tab="mocks">📝 Mock Tests <span class="tabbadge" id="navMockBadge">0</span></button>
+    <button class="tabbtn" data-tab="dashboard">📊 Progress &amp; Offline Sync</button>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <!-- ==================== TAB 1: OVERVIEW (ORIGINAL + DUAL COUNTDOWNS) ==================== -->
+  <section class="view active" id="view-overview">
+    <section class="hero">
+      <div class="panel mainhero">
+        <div class="eyebrow">CBSE • CLASS 10 • 2027</div>
+        <h1 id="heroSubject">Your next exam is approaching.</h1>
+        <div class="sub" id="heroDate">Exam schedule loaded on this device</div>
+        <div class="countgrid">
+          <div class="unit"><strong id="days">--</strong><small>Days</small></div>
+          <div class="unit"><strong id="hours">--</strong><small>Hours</small></div>
+          <div class="unit"><strong id="minutes">--</strong><small>Minutes</small></div>
+          <div class="unit"><strong id="seconds">--</strong><small>Seconds</small></div>
+        </div>
+        <div class="herofoot">
+          <span class="nexttag" id="nextTag">NEXT EXAM</span>
+          <span class="sub" id="examCount">7 scheduled papers</span>
+        </div>
+      </div>
+
+      <div class="panel sidebox">
+        <div>
+          <div class="eyebrow">YOUR EXAM MISSION</div>
+          <h3>One paper at a time.<br>One day at a time.</h3>
+          <div class="sub">Keep your preparation consistent. Your next target and Science mastery progress are synced locally.</div>
+        </div>
+        <div>
+          <div class="progress"><i id="progressBar"></i></div>
+          <div class="sub" id="progressText">Your exam journey</div>
+          <div class="statrow">
+            <div class="stat"><b id="upcomingCount">7</b><small>Upcoming papers</small></div>
+            <div class="stat"><b id="completedCount">0</b><small>Completed papers</small></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DUAL EXAM COUNTDOWN: MATHS (17 FEB 2027) & SCIENCE (22 FEB 2027) -->
+    <div class="sectionhead">
+      <h2>DUAL CORE EXAM COUNTDOWNS</h2>
+      <span>Synced with editable schedule dates</span>
+    </div>
+    <section class="dualgrid">
+      <div class="panel dualcard maths">
+        <div class="dualtop">
+          <div>
+            <div class="eyebrow" style="color:#7ab8ff">CORE PAPER 1</div>
+            <div class="dualtitle" id="mathsTitle">Mathematics (Standard &amp; Basic)</div>
+            <div class="sub" id="mathsDateLbl">17 Feb 2027 · 10:30 AM</div>
+          </div>
+          <span class="dualbadge" id="mathsBadge">TARGET PAPER</span>
+        </div>
+        <div class="miniunits">
+          <div class="miniunit"><strong id="mDays">--</strong><small>Days</small></div>
+          <div class="miniunit"><strong id="mHours">--</strong><small>Hours</small></div>
+          <div class="miniunit"><strong id="mMins">--</strong><small>Mins</small></div>
+          <div class="miniunit"><strong id="mSecs">--</strong><small>Secs</small></div>
+        </div>
+      </div>
+
+      <div class="panel dualcard science">
+        <div class="dualtop">
+          <div>
+            <div class="eyebrow" style="color:#6ee2b0">CORE PAPER 2 · COMMAND FOCUS</div>
+            <div class="dualtitle" id="scienceTitle">Science (Theory + Competency)</div>
+            <div class="sub" id="scienceDateLbl">22 Feb 2027 · 10:30 AM</div>
+          </div>
+          <span class="dualbadge" id="scienceBadge">SYLLABUS: 0%</span>
+        </div>
+        <div class="miniunits">
+          <div class="miniunit"><strong id="sDays">--</strong><small>Days</small></div>
+          <div class="miniunit"><strong id="sHours">--</strong><small>Hours</small></div>
+          <div class="miniunit"><strong id="sMins">--</strong><small>Mins</small></div>
+          <div class="miniunit"><strong id="sSecs">--</strong><small>Secs</small></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="sectionhead">
+      <h2>EXAM SCHEDULE</h2>
+      <span>All dates are editable</span>
+    </div>
+    <section class="grid2">
+      <div class="panel schedule">
+        <div class="examlist" id="examList"></div>
+      </div>
+
+      <div style="display:grid;gap:16px;align-content:start">
+        <div class="panel tools">
+          <div class="eyebrow">QUICK ACTIONS</div>
+          <div class="toolrow">
+            <span class="toolicon">🔔</span>
+            <div><b>Enable notifications</b><small>Allow browser alerts on this device</small></div>
+            <button id="notifyBtn">Enable</button>
+          </div>
+          <div class="toolrow">
+            <span class="toolicon">⏰</span>
+            <div><b>Daily reminders</b><small id="remSummarySub">5:00 AM and 5:00 PM</small></div>
+            <button id="reminderBtn">On</button>
+          </div>
+          <div class="toolrow">
+            <span class="toolicon">✎</span>
+            <div><b>Edit exam dates</b><small>Update subjects or dates</small></div>
+            <button id="editBtn">Edit</button>
+          </div>
+          <div class="toolrow">
+            <span class="toolicon">↻</span>
+            <div><b>Install / refresh offline files</b><small>Cache app for offline use</small></div>
+            <button id="cacheBtn">Check</button>
+          </div>
+        </div>
+
+        <div class="panel reminders">
+          <div class="eyebrow">YOUR DAILY REMINDERS</div>
+          <h3 style="margin:6px 0 12px">Reminder schedule</h3>
+          <div class="remgrid" id="homeReminderList"></div>
+          <div class="sub" style="margin-top:10px;font-size:11px">Change times or add more reminders in Settings. Alerts are checked while the app is open/active.</div>
+        </div>
+
+        <div class="panel reminders">
+          <div class="eyebrow">EXAM ALERT PLAN</div>
+          <h3 style="margin:6px 0 12px">Stay ahead of every paper</h3>
+          <div class="remgrid">
+            <div class="remcard"><b>7 days before</b><small>Upcoming exam alert</small></div>
+            <div class="remcard"><b>3 days before</b><small>Preparation alert</small></div>
+            <div class="remcard"><b>1 day before</b><small>Final preparation alert</small></div>
+            <div class="remcard"><b>1 hour before</b><small>Last reminder</small></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <!-- ==================== TAB 2: SCIENCE STUDY ROADMAP ==================== -->
+  <section class="view" id="view-roadmap">
+    <div class="sectionhead">
+      <h2>SCIENCE STUDY ROADMAP (50 + 15 + FINAL PHASE)</h2>
+      <span>Structured execution plan leading up to 22 Feb 2027</span>
+    </div>
+
+    <div class="panel" style="padding:20px;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <div>
+          <div class="eyebrow">ROADMAP TIMELINE CONFIGURATOR</div>
+          <h3 style="margin:4px 0">65-Day Core Sprint + Post-Maths Final Revision</h3>
+          <div class="sub" id="roadmapSummaryText">Configure your roadmap start date to map all 13 NCERT Science chapters across the 3 phases.</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <label class="sub" for="roadmapStartInput" style="font-size:12px">Start Date:</label>
+          <input type="date" id="roadmapStartInput" style="background:#090b0e;color:#fff;border:1px solid #363b44;border-radius:9px;padding:8px 10px">
+          <button class="primary sm" id="autoAssignTargetsBtn">Auto-Distribute Chapter Targets</button>
+        </div>
+      </div>
+      <div class="roadmapbar" title="50d Syllabus | 15d Revision | Final Gap Revision">
+        <div style="width:71.4%;background:var(--orange)"></div>
+        <div style="width:21.4%;background:var(--blue)"></div>
+        <div style="width:7.2%;background:var(--green)"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);flex-wrap:wrap;gap:8px">
+        <span>🟧 Phase 1: 50 Days Syllabus Completion (~3.8 days/chapter)</span>
+        <span>🟦 Phase 2: 15 Days Revision &amp; PYQ Consolidation</span>
+        <span>🟩 Phase 3: Final Exam-Gap Revision (17 Feb – 22 Feb 2027)</span>
+      </div>
+    </div>
+
+    <div class="grid3" id="roadmapPhases"></div>
+
+    <div class="sectionhead">
+      <h2>PHASE CHECKLIST &amp; MILESTONES</h2>
+      <span>Tap milestones as you complete them</span>
+    </div>
+    <div class="panel" style="padding:18px" id="roadmapMilestones"></div>
+  </section>
+
+  <!-- ==================== TAB 3: CHAPTER-WISE + NCERT + PRACTICE TRACKER ==================== -->
+  <section class="view" id="view-chapters">
+    <div class="sectionhead">
+      <h2>SUBJECT CHAPTERS · NCERT &amp; PRACTICE TRACKER</h2>
+      <span><button type="button" class="primary sm" id="addChapterBtn">＋ Add chapter / subject</button></span>
+    </div>
+
+    <div class="panel" style="padding:16px;margin-bottom:14px">
+      <div class="filterbar">
+        <span id="discChips" style="display:contents"></span>
+        <select id="prioFilter" style="background:#0b0d10;border:1px solid var(--line);color:var(--text);padding:6px 10px;border-radius:10px;font-size:12px">
+          <option value="ALL">All Priorities</option>
+          <option value="High">High Priority</option>
+          <option value="Medium">Medium Priority</option>
+          <option value="Low">Low Priority</option>
+        </select>
+        <select id="statusFilter" style="background:#0b0d10;border:1px solid var(--line);color:var(--text);padding:6px 10px;border-radius:10px;font-size:12px">
+          <option value="ALL">All Statuses</option>
+          <option value="COMPLETED">Completed</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="NOT_STARTED">Not Started</option>
+        </select>
+        <input type="search" class="searchinput" id="chapterSearch" placeholder="Search chapter or topic...">
+      </div>
+      <div class="sub" style="font-size:12px">
+        Note: Official CBSE chapter-level weightage is published at unit level rather than fixed per-chapter marks; set your own editable priority &amp; target dates below.
+      </div>
+    </div>
+
+    <div class="chaptergrid" id="chapterList"></div>
+  </section>
+
+  <!-- ==================== TAB 4: REVISION TRACKER ==================== -->
+  <section class="view" id="view-revision">
+    <div class="sectionhead">
+      <h2>MULTI-CYCLE REVISION TRACKER</h2>
+      <span>Track Rev 1, Rev 2 &amp; Final Pre-Exam Revision for all 13 Science chapters</span>
+    </div>
+
+    <div class="grid4" style="margin-bottom:16px" id="revisionSummaryCards"></div>
+    <div class="chaptergrid" id="revisionList"></div>
+  </section>
+
+  <!-- ==================== TAB 5: DAILY STUDY PLANNER ==================== -->
+  <section class="view" id="view-planner">
+    <div class="sectionhead">
+      <h2>DAILY STUDY PLANNER &amp; TARGETS</h2>
+      <span id="plannerDateHeader">Today's Study Execution</span>
+    </div>
+
+    <div class="grid2">
+      <div class="panel" style="padding:18px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+          <div>
+            <div class="eyebrow">DAILY TARGETS</div>
+            <h3 style="margin:3px 0">Study Hours &amp; Task Execution</h3>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="date" id="plannerDateInput" style="background:#090b0e;color:#fff;border:1px solid #363b44;border-radius:9px;padding:7px 9px">
+          </div>
+        </div>
+
+        <div class="grid3" style="margin-bottom:14px">
+          <div class="stat">
+            <small>Target Study Hours</small>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+              <input type="number" id="dailyTargetHours" min="1" max="16" step="0.5" style="width:68px;background:#080a0d;color:#fff;border:1px solid #343941;border-radius:7px;padding:4px 7px">
+              <span class="sub">hrs</span>
+            </div>
+          </div>
+          <div class="stat">
+            <small>Logged Hours Today</small>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+              <input type="number" id="dailyLoggedHours" min="0" max="16" step="0.5" style="width:68px;background:#080a0d;color:#fff;border:1px solid #343941;border-radius:7px;padding:4px 7px">
+              <span class="sub">hrs</span>
+            </div>
+          </div>
+          <div class="stat">
+            <small>Task Completion</small>
+            <b id="dailyTaskPct" style="margin-top:4px">0%</b>
+          </div>
+        </div>
+
+        <div class="progress green"><i id="dailyProgressBar"></i></div>
+
+        <form id="addTaskForm" style="display:grid;grid-template-columns:1.6fr .9fr .8fr auto;gap:8px;margin:14px 0">
+          <input type="text" id="newTaskTitle" placeholder="Add study task (e.g. Light Numericals + PYQs)" required style="background:#090b0e;color:#fff;border:1px solid #363b44;border-radius:9px;padding:9px 11px">
+          <select id="newTaskSubject" style="background:#090b0e;color:#fff;border:1px solid #363b44;border-radius:9px;padding:9px">
+            <option value="Science - Physics">Science · Physics</option>
+            <option value="Science - Chemistry">Science · Chemistry</option>
+            <option value="Science - Biology">Science · Biology</option>
+            <option value="Mathematics">Mathematics</option>
+            <option value="Other Subject">Other Subject</option>
+          </select>
+          <select id="newTaskPrio" style="background:#090b0e;color:#fff;border:1px solid #363b44;border-radius:9px;padding:9px">
+            <option value="High">High</option>
+            <option value="Medium" selected>Medium</option>
+            <option value="Low">Low</option>
+          </select>
+          <button type="submit" class="primary">＋ Add</button>
+        </form>
+
+        <div id="dailyTaskList"></div>
+      </div>
+
+      <div style="display:grid;gap:16px;align-content:start">
+        <div class="panel" style="padding:18px">
+          <div class="eyebrow">QUICK STUDY TEMPLATES</div>
+          <h3 style="margin:6px 0 12px">One-tap daily blocks</h3>
+          <div style="display:grid;gap:8px">
+            <button type="button" class="sm" style="text-align:left" onclick="addTemplateTask('NCERT Line-by-Line Reading + In-Text Qs (1.5h)','Science - Biology','High')">＋ NCERT Reading + In-Text Questions (1.5h)</button>
+            <button type="button" class="sm" style="text-align:left" onclick="addTemplateTask('Physics Numericals & Ray/Circuit Diagrams (1.5h)','Science - Physics','High')">＋ Physics Numericals &amp; Diagrams (1.5h)</button>
+            <button type="button" class="sm" style="text-align:left" onclick="addTemplateTask('Chemical Equations & Reactions Drill (1h)','Science - Chemistry','High')">＋ Chemical Equations &amp; Reactions Drill (1h)</button>
+            <button type="button" class="sm" style="text-align:left" onclick="addTemplateTask('Assertion-Reason + Case-Based Practice (45m)','Science - Chemistry','Medium')">＋ Assertion-Reason + Case-Based Set (45m)</button>
+            <button type="button" class="sm" style="text-align:left" onclick="addTemplateTask('Maths Daily Practice Set (1.5h)','Mathematics','High')">＋ Maths Daily Practice Set (1.5h)</button>
+          </div>
+        </div>
+
+        <div class="panel" style="padding:18px">
+          <div class="eyebrow">PLANNER NOTES / REFLECTION</div>
+          <h3 style="margin:6px 0 10px">Daily log note</h3>
+          <textarea id="dailyNoteInput" rows="4" placeholder="Write key takeaways, doubts to clear, or tomorrow's top priority..." style="width:100%;background:#090b0e;color:#fff;border:1px solid #363b44;border-radius:9px;padding:10px"></textarea>
+          <div class="sub" style="font-size:11px;margin-top:6px">Auto-saved locally for the selected date.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== TAB 6: MOCK TEST TRACKER ==================== -->
+  <section class="view" id="view-timer">
+    <div class="sectionhead">
+      <h2>STUDY TIMER</h2>
+      <span id="timerTodayTotal">Today: 0m</span>
+    </div>
+    <div class="grid2">
+      <div class="panel" style="padding:18px">
+        <div class="eyebrow">FOCUS SESSION</div>
+        <div class="timerface" id="timerFace">25:00</div>
+        <div class="sub" id="timerStatus" style="text-align:center">Ready</div>
+        <div class="progress" style="margin:12px 0"><i id="timerBar" style="width:0%"></i></div>
+        <div id="timerSetup">
+          <div class="seg">
+            <button type="button" id="timerModeDown" class="active">⏳ Countdown</button>
+            <button type="button" id="timerModeUp">⏱ Stopwatch</button>
+          </div>
+          <div id="timerPresetBox">
+            <div class="presets" id="timerPresets"></div>
+            <div class="tfield"><label for="timerMinutes">Minutes (custom)</label><input type="number" id="timerMinutes" min="1" max="600" value="25"></div>
+          </div>
+          <div class="tfield"><label for="timerSubject">Subject</label><select id="timerSubject"></select></div>
+          <div class="tfield"><label for="timerNote">Topic / note (optional)</label><input type="text" id="timerNote" maxlength="80" placeholder="e.g. Electricity numericals"></div>
+        </div>
+        <div class="timerbtns">
+          <button type="button" class="primary" id="timerStartBtn">▶ Start</button>
+          <button type="button" id="timerPauseBtn" hidden>⏸ Pause</button>
+          <button type="button" class="primary" id="timerResumeBtn" hidden>▶ Resume</button>
+          <button type="button" id="timerStopBtn" hidden>✔ Stop &amp; Save</button>
+          <button type="button" class="danger" id="timerDiscardBtn" hidden>✕ Discard</button>
+        </div>
+        <div class="sub" style="margin-top:10px;font-size:11.5px">Time is saved to your Daily Planner "Logged Hours". In the Android app a live timer shows in the notification bar and an alert rings when the countdown ends.</div>
+      </div>
+      <div style="display:grid;gap:16px;align-content:start">
+        <div class="panel" style="padding:18px">
+          <div class="eyebrow">STUDY TIME BY SUBJECT</div>
+          <div class="statrow" style="margin:10px 0">
+            <div class="stat"><b id="timerTodayBig">0m</b><small>Today</small></div>
+            <div class="stat"><b id="timerWeekBig">0m</b><small>Last 7 days</small></div>
+          </div>
+          <div id="timerSubjectBars"></div>
+        </div>
+        <div class="panel" style="padding:18px">
+          <div class="eyebrow">TODAY'S SESSIONS</div>
+          <div id="timerSessionList"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="view-mocks">
+    <div class="sectionhead">
+      <h2>MOCK TEST &amp; SAMPLE PAPER TRACKER</h2>
+      <span>Track scores, accuracy, time management &amp; mistake logs</span>
+    </div>
+
+    <div class="grid2">
+      <div class="panel" style="padding:18px">
+        <div class="eyebrow">LOG NEW SAMPLE PAPER / MOCK TEST</div>
+        <h3 style="margin:4px 0 12px">Record Test Performance</h3>
+        <form id="mockForm">
+          <div class="fieldrow">
+            <div class="field">
+              <label>Paper / Test Name</label>
+              <input type="text" id="mockTitle" placeholder="e.g. CBSE Sample Paper 2026-27 #1" required>
+            </div>
+            <div class="field">
+              <label>Subject</label>
+              <select id="mockSubject">
+                <option value="Science">Science</option>
+                <option value="Mathematics">Mathematics</option>
+                <option value="Social Science">Social Science</option>
+                <option value="English">English</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="fieldrow">
+            <div class="field">
+              <label>Date Attempted</label>
+              <input type="date" id="mockDate" required>
+            </div>
+            <div class="field">
+              <label>Time Taken (mins)</label>
+              <input type="number" id="mockDuration" value="180" min="15" max="240">
+            </div>
+          </div>
+
+          <div class="fieldrow">
+            <div class="field">
+              <label>Marks Scored</label>
+              <input type="number" id="mockScore" step="0.5" min="0" max="100" placeholder="e.g. 68" required>
+            </div>
+            <div class="field">
+              <label>Maximum Marks</label>
+              <input type="number" id="mockMax" value="80" min="10" max="100" required>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Mistakes Analysis &amp; Weak Chapters to Revise</label>
+            <textarea id="mockMistakes" rows="3" placeholder="e.g. Lost 3 marks in sign convention (Light), 2 marks in Carbon IUPAC naming, 1 Assertion-Reason confusion..."></textarea>
+          </div>
+
+          <button type="submit" class="primary">Save Mock Test Attempt</button>
+        </form>
+      </div>
+
+      <div style="display:grid;gap:16px;align-content:start">
+        <div class="panel" style="padding:18px">
+          <div class="eyebrow">PERFORMANCE ANALYTICS</div>
+          <h3 style="margin:4px 0">Score Trend &amp; Averages</h3>
+          <div class="statrow" id="mockStatsRow"></div>
+          <div class="chartbox" id="mockChart"></div>
+        </div>
+
+        <div class="panel" style="padding:18px">
+          <div class="eyebrow">ATTEMPT HISTORY</div>
+          <h3 style="margin:4px 0 12px">Logged Papers &amp; Mistake Logs</h3>
+          <div id="mockHistoryList"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== TAB 7: PROGRESS DASHBOARD & OFFLINE SYNC ==================== -->
+  <section class="view" id="view-dashboard">
+    <div class="sectionhead">
+      <h2>OVERALL PROGRESS DASHBOARD &amp; LOCAL SYNC</h2>
+      <span>100% Offline-first storage · Automatic sync across dashboard, reminders &amp; widget bridge</span>
+    </div>
+
+    <div class="grid4" id="dashTopStats"></div>
+
+    <div class="grid2" style="margin-top:16px">
+      <div class="panel" style="padding:18px">
+        <div class="eyebrow">DISCIPLINE-WISE SCIENCE COMPLETION</div>
+        <h3 style="margin:4px 0 14px">Chemistry · Biology · Physics Breakdown</h3>
+        <div id="disciplineBreakdown"></div>
+
+        <div class="sectionhead" style="margin-top:22px">
+          <h2>COMPONENT READINESS</h2>
+          <span>Across all 13 chapters</span>
+        </div>
+        <div id="componentBreakdown"></div>
+      </div>
+
+      <div style="display:grid;gap:16px;align-content:start">
+        <div class="panel" style="padding:18px">
+          <div class="eyebrow">OFFLINE STORAGE &amp; BACKUP</div>
+          <h3 style="margin:4px 0 8px">Local Device Sync</h3>
+          <div class="notice" id="syncStatusNotice">All chapters, NCERT checklists, practice counts, revisions, planner tasks, mock scores and exam settings are saved automatically in localStorage.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+            <button class="primary sm" id="exportDataBtn">⬇ Export JSON Backup</button>
+            <button class="sm" id="importDataBtn">⬆ Import JSON Backup</button>
+            <input type="file" id="importFileInput" accept="application/json" hidden>
+            <button class="danger sm" id="resetDemoBtn">Reset Science Trackers</button>
+          </div>
+        </div>
+
+        <div class="panel" style="padding:18px">
+          <div class="eyebrow">ANDROID NATIVE WIDGET INTEGRATION</div>
+          <h3 style="margin:4px 0 8px">Live Widget Payload Preview</h3>
+          <div class="sub" style="font-size:12px;margin-bottom:10px">
+            Synced automatically to <code>localStorage["cbseWidgetSummary2027"]</code> and <code>window.AndroidWidgetBridge.updateWidgetData(json)</code> whenever data updates.
+          </div>
+          <pre id="widgetPayloadPreview" style="background:#080a0d;border:1px solid var(--line);border-radius:10px;padding:11px;font-size:11px;color:#9ed0ff;overflow:auto;max-height:210px;margin:0"></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>EXAM COMMAND CENTER 2027 · Data stays on this device · Offline-first PWA</footer>
+</main>
+
+<!-- Bottom Mobile Navigation -->
+<nav class="bottomnav" aria-label="Mobile Navigation">
+  <button class="bnavbtn active" data-tab="overview"><span>🎯</span>Exams</button>
+  <button class="bnavbtn" data-tab="roadmap"><span>🗺️</span>Roadmap</button>
+  <button class="bnavbtn" data-tab="chapters"><span>📚</span>Chapters</button>
+  <button class="bnavbtn" data-tab="planner"><span>📅</span>Planner</button>
+  <button class="bnavbtn" data-tab="timer"><span>⏱️</span>Timer</button>
+  <button class="bnavbtn" data-tab="mocks"><span>📝</span>Mocks</button>
+  <button class="bnavbtn" data-tab="dashboard"><span>📊</span>Stats</button>
+</nav>
+
+<!-- ==================== MODAL 1: ORIGINAL EXAM & REMINDER SETTINGS ==================== -->
+<div class="modal" id="modal">
+  <div class="dialog">
+    <h2>Exam settings</h2>
+    <div class="notice">Changes are saved on this device. Set the exam start time if your school has shared it.</div>
+    <div id="editFields"></div>
+    <div id="pinFields"></div>
+    <div id="subjectManager"></div>
+    <div id="widgetSettings"></div>
+
+    <div class="sectionhead" style="margin-top:20px">
+      <h2>DAILY REMINDER TIMES</h2>
+      <span>Unlimited times</span>
+    </div>
+    <div class="notice">Default reminders are 5:00 AM and 5:00 PM. Add, change, disable or remove times. Notifications require browser permission.</div>
+    <div id="reminderFields"></div>
+    <button type="button" id="addReminderBtn" style="margin-top:10px">＋ Add reminder time</button>
+
+    <div class="actions">
+      <button type="button" id="closeModal">Close</button>
+      <button type="button" class="primary" id="saveBtn">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL 2: EDIT CHAPTER TARGETS & PRIORITY ==================== -->
+<div class="modal" id="widgetModal">
+  <div class="dialog">
+    <h2>Add widgets to your home screen</h2>
+    <div class="notice">Tap a widget below, then confirm "Add" in the pop-up. You can pin a subject/paper for each widget while adding it. Long-press a widget on the home screen to resize it.</div>
+    <div class="timerbtns" style="flex-direction:column">
+      <button type="button" class="primary" data-widget="main">⏳ Exam Countdown (live h:m:s)</button>
+      <button type="button" class="primary" data-widget="dual">📌 Pinned Papers (2 subjects)</button>
+      <button type="button" class="primary" data-widget="schedule">📅 Full Date Sheet</button>
+    </div>
+    <div class="sub" id="widgetMsg" style="margin-top:10px"></div>
+    <div class="actions">
+      <button type="button" id="widgetLater">Remind me later</button>
+      <button type="button" class="primary" id="widgetDone">Done · don't show again</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="chapterModal">
+  <div class="dialog">
+    <h2 id="chapModalTitle">Edit Chapter</h2>
+    <div class="notice">Add or edit any subject's chapter: name, topics, priority, target date and notes.</div>
+    <input type="hidden" id="editChapId">
+    <div class="fieldrow">
+      <div class="field"><label>Subject</label><select id="editChapSubject"></select></div>
+      <div class="field"><label>Group / Unit (optional)</label><input type="text" id="editChapGroup" maxlength="30" placeholder="e.g. Physics, Algebra"></div>
+    </div>
+    <div class="field" id="editChapNewSubjectBox" hidden><label>New subject name</label><input type="text" id="editChapNewSubject" maxlength="40" placeholder="e.g. Maths-2"></div>
+    <div class="field"><label>Chapter name</label><input type="text" id="editChapName" maxlength="90"></div>
+    <div class="field"><label>Topics (optional)</label><input type="text" id="editChapTopics" maxlength="240"></div>
+    <div class="field"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="editChapNum"> This chapter has numericals</label></div>
+    <div class="fieldrow">
+      <div class="field"><label>Priority Level</label>
+        <select id="editChapPrio"><option value="High">High Priority</option><option value="Medium">Medium Priority</option><option value="Low">Low Priority</option></select></div>
+      <div class="field"><label>Target Completion Date</label><input type="date" id="editChapTargetDate"></div>
+    </div>
+    <div class="fieldrow">
+      <div class="field"><label>Target Question Goal (Count)</label><input type="number" id="editChapQGoal" min="1" max="1000" step="5"></div>
+      <div class="field"><label>Questions Solved So Far</label><input type="number" id="editChapQSolved" min="0" max="1000" step="1"></div>
+    </div>
+    <div class="field"><label>Chapter Focus Notes / Formula &amp; Diagram Checklist</label>
+      <textarea id="editChapNotes" rows="3" placeholder="Key points, diagrams, weak areas..."></textarea></div>
+    <div class="actions">
+      <button type="button" class="danger" id="deleteChapBtn" hidden>Delete</button>
+      <button type="button" id="closeChapModal">Cancel</button>
+      <button type="button" class="primary" id="saveChapModalBtn">Save Chapter</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==========================================================================
+   1. CORE EXAM SCHEDULE & REMINDER STATE (PRESERVED & COMPATIBLE)
+   ========================================================================== */
+const DEFAULT_EXAMS = [
+  {id:1, date:"2027-02-17", time:"10:30", subject:"Mathematics (Standard & Basic)"},
+  {id:2, date:"2027-02-22", time:"10:30", subject:"Science"},
+  {id:3, date:"2027-02-24", time:"10:30", subject:"Computer Science / IT / AI"},
+  {id:4, date:"2027-02-26", time:"10:30", subject:"English"},
+  {id:5, date:"2027-03-01", time:"10:30", subject:"Sanskrit"},
+  {id:6, date:"2027-03-03", time:"10:30", subject:"Hindi"},
+  {id:7, date:"2027-03-08", time:"10:30", subject:"Social Science (SST)"}
+];
+
+let exams = JSON.parse(localStorage.getItem("exams2027") || "null") || DEFAULT_EXAMS;
+let reminders = localStorage.getItem("dailyReminders") !== "off";
+let reminderTimes = JSON.parse(localStorage.getItem("reminderTimes") || "null") || ["05:00", "17:00"];
+let lastAlerts = JSON.parse(localStorage.getItem("alertHistory") || "{}");
+
+/* ==========================================================================
+   2. OFFICIAL CBSE CLASS 10 SCIENCE SYLLABUS (13 NCERT CHAPTERS)
+      Verified NCERT Class 10 Science rationalization (2023-24 onwards / 2026-27):
+      - Periodic Classification, Heredity & Evolution (Evolution part),
+        Sources of Energy, Management of Natural Resources excluded from board theory.
+      - No invented chapter weightages; user-editable priority & targets.
+   ========================================================================== */
+const DEFAULT_CHAPTERS = [
+  // CHEMISTRY (4 Chapters)
+  {
+    id:"ch1", code:"CH-01", discipline:"Chemistry",
+    name:"Chemical Reactions and Equations",
+    topics:"Balancing equations, types of reactions, oxidation & reduction, corrosion, rancidity",
+    hasNumericals:false, priority:"High", targetDate:"", qGoal:60, qSolved:0, notes:"",
+    ncert:{theory:false, intext:false, exercise:false},
+    practice:{mcq:false, ar:false, case:false, numericals:false, pyq:false, exemplar:false},
+    revision:{r1:false, r2:false, r3:false, lastDate:""}
+  },
+  {
+    id:"ch2", code:"CH-02", discipline:"Chemistry",
+    name:"Acids, Bases and Salts",
+    topics:"Indicators, chemical properties, pH scale & daily life, chlor-alkali, baking/washing soda, POP",
+    hasNumericals:false, priority:"High", targetDate:"", qGoal:65, qSolved:0, notes:"",
+    ncert:{theory:false, intext:false, exercise:false},
+    practice:{mcq:false, ar:false, case:false, numericals:false, pyq:false, exemplar:false},
+    revision:{r1:false, r2:false, r3:false, lastDate:""}
+  },
+  {
+    id:"ch3", code:"CH-03", discipline:"Chemistry",
+    name:"Metals and Non-metals",
+    topics:"Physical & chemical properties, reactivity series, ionic bonding, metallurgy & refining, corrosion prevention",
+    hasNumericals:false, priority:"Medium", targetDate:"", qGoal:65, qSolved:0, notes:"",
+    ncert:{theory:false, intext:false, exercise:false},
+    practice:{mcq:false, ar:false, case:false, numericals:false, pyq:false, exemplar:false},
+    revision:{r1:false, r2:false, r3:false, lastDate:""}
+  },
+  {
+    id:"ch4", code:"CH-04", discipline:"Chemistry",
+    name:"Carbon and its Compounds",
+    topics:"Covalent bonding, allotropes, homologous series, IUPAC nomenclature, ethanol & ethanoic acid, soaps & detergents",
+    hasNumericals:false, priority:"High", targetDate:"", qGoal:75, qSolved:0, notes:"",
+    ncert:{theory:false, intext:false, exercise:false},
+    practice:{mcq:false, ar:false, case:false, numericals:false, pyq:false, exemplar:false},
+    revision:{r1:false, r2:false, r3:false, lastDate:""}
+  },
+
+  // BIOLOGY (5 Chapters)
+  {
+    id:"ch5", code:"BIO-01", discipline:"Biology",
+    name:"Life Processes",
+    topics:"Autotrophic & heterotrophic nutrition, human digestion, respiration, double circulation, nephron & excretion",
+    hasNumericals:false, priority:"High", targetDate:"", qGoal:80, qSolved:0, notes:"",
+    ncert:{theory:false, intext:false, exercise:false},
+    practice:{mcq:false, ar:false, case:false, numericals:false, pyq:false, exemplar:false},
+    revision:{r1:false, r2:false, r3:false, lastDate:""}
+  },
+  {
+    id:"ch6", code:"BIO-02", discipline:"Biology",
+    name:"Control and Coordination",
+    topics:"Neuron & reflex arc, human brain parts, plant tropisms & phytohormones, endocrine glands & hormones",
+    hasNumericals:false, priority:"Medium", targetDate:"", qGoal:60, qSolved:0, notes:"",
+    ncert:{theory:false, intext:false, exercise:false},
+    practice:{mcq:false, ar:false, case:false, numericals:false, pyq:false, exemplar:false},
+    revision:{r1:false, r2:false, r3:false, lastDate:""}
+  },
+  {
+    id:"ch7", code:"BIO-03", discipline:"Biology",
+    name:"How do Organisms Reproduce?",
+    topics:"Asexual modes, flower structure & double fertilization, human reproductive systems, reproductive health",
+    hasNumericals:false, priority:"High", targetDate:"", qGoal:70, qSolved:0, notes:"",
+    ncert:{theory:false, intext:false, exercise:false},
+    practice:{mcq:false, ar:false, case:false, numericals:false, pyq:false, exemplar:false},
+    revision:{r1:false, r2:false, r3:false, lastDate:""}
+  },
+  {
+    id:"ch8", code:"BIO-04", discipline:"Biology",
+    name:"Heredity",
+    topics:"Mendel's monohybrid & dihybrid crosses, laws of inheritance, sex determination in humans",
+    hasNumericals:false, priority:"Medium", targetDate:"", qGoal:55, qSolved:0, notes:"",
+    ncert:{theory:false, intext:false, exercise:false},
+    practice:{mcq:false, ar:false, case:false, numericals:false, pyq:false, exemplar:false},
+    revision:{r1:false, r2:false, r3:false, lastDate:""}
+  },
+  {
+    id:"ch9", code:"BIO-05", discipline:"Biology",
+    name:"Our Environment",
+    topics:"Ecosystem components, food chains & webs, 10% energy law, biological magnification, ozone depletion & waste",
+    hasNumericals:true, priority:"Low", targetDate:"", qGoal:45, qSolved:0, notes:"",
+    ncert:{theory:false, intext:false, exercise:false},
+    practice:{mcq:false, ar:false, case:false, numericals:false, pyq:false, exemplar:false},
+    revision:{r1:false, r2:false, r3:false, lastDate:""}
+  },
+
+  // PHYSICS (4 Chapters)
+  {
+    id:"ch10", code:"PHY-01", discipline:"Physics",
+    name:"Light – Reflection and Refraction",
+    topics:"Spherical mirrors, ray diagrams, mirror & magnification formulas, refractive index, lenses & power of lens",
+    hasNumericals:true, priority:"High", targetDate:"", qGoal:85, qSolved:0, notes:"",
+    ncert:{theory:false, intext:false, exercise:false},
+    practice:{mcq:false, ar:false, case:false, numericals:false, pyq:false, exemplar:false},
+    revision:{r1:false, r2:false, r3:false, lastDate:""}
+  },
+  {
+    id:"ch11", code:"PHY-02", discipline:"Physics",
+    name:"The Human Eye and the Colourful World",
+    topics:"Eye structure & accommodation, myopia/hypermetropia/presbyopia correction, prism dispersion, atmospheric refraction & scattering",
+    hasNumericals:true, priority:"Medium", targetDate:"", qGoal:55, qSolved:0, notes:"",
+    ncert:{theory:false, intext:false, exercise:false},
+    practice:{mcq:false, ar:false, case:false, numericals:false, pyq:false, exemplar:false},
+    revision:{r1:false, r2:false, r3:false, lastDate:""}
+  },
+  {
+    id:"ch12", code:"PHY-03", discipline:"Physics",
+    name:"Electricity",
+    topics:"Current, potential difference, Ohm's law, resistivity, series & parallel circuits, Joule's heating, electric power",
+    hasNumericals:true, priority:"High", targetDate:"", qGoal:85, qSolved:0, notes:"",
+    ncert:{theory:false, intext:false, exercise:false},
+    practice:{mcq:false, ar:false, case:false, numericals:false, pyq:false, exemplar:false},
+    revision:{r1:false, r2:false, r3:false, lastDate:""}
+  },
+  {
+    id:"ch13", code:"PHY-04", discipline:"Physics",
+    name:"Magnetic Effects of Electric Current",
+    topics:"Magnetic field lines, right-hand thumb rule, solenoid, Fleming's left-hand rule, domestic electric circuits & fuse",
+    hasNumericals:false, priority:"Medium", targetDate:"", qGoal:60, qSolved:0, notes:"",
+    ncert:{theory:false, intext:false, exercise:false},
+    practice:{mcq:false, ar:false, case:false, numericals:false, pyq:false, exemplar:false},
+    revision:{r1:false, r2:false, r3:false, lastDate:""}
+  }
+];
+
+const DEFAULT_ROADMAP = {
+  startDate: new Date().toISOString().slice(0, 10),
+  milestones: [
+    {id:"m1", phase:1, title:"Days 1–18: Complete Chemistry (4 Chapters) + NCERT In-Text & Back Exercises", done:false},
+    {id:"m2", phase:1, title:"Days 19–36: Complete Biology (5 Chapters) + Diagrams & NCERT Exemplar", done:false},
+    {id:"m3", phase:1, title:"Days 37–50: Complete Physics (4 Chapters) + Sign Convention & Circuit Numericals", done:false},
+    {id:"m4", phase:2, title:"Days 51–58: Revision Cycle 1 + Chapter-wise PYQs & Assertion-Reason Drills", done:false},
+    {id:"m5", phase:2, title:"Days 59–65: Attempt 3 Full-Length Timed Science Sample Papers & Mistake Audit", done:false},
+    {id:"m6", phase:3, title:"Post-Maths Gap (17–21 Feb 2027): High-Yield Formula, Reaction & Diagram Rapid Revision", done:false}
+  ]
+};
+
+let chapters = JSON.parse(localStorage.getItem("scienceChapters2027") || "null") || JSON.parse(JSON.stringify(DEFAULT_CHAPTERS));
+let roadmap = JSON.parse(localStorage.getItem("scienceRoadmap2027") || "null") || JSON.parse(JSON.stringify(DEFAULT_ROADMAP));
+let plannerData = JSON.parse(localStorage.getItem("studyPlanner2027") || "{}");
+let mockTests = JSON.parse(localStorage.getItem("mockTests2027") || "[]");
+
+let activeDiscFilter = "ALL";
+let selectedPlannerDate = new Date().toISOString().slice(0, 10);
+
+const $ = id => document.getElementById(id);
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function fmtDate(d){
+  if(!d) return "Not set";
+  return new Date(d + "T00:00:00").toLocaleDateString("en-IN", {day:"2-digit", month:"short", year:"numeric"});
+}
+function addDays(dateStr, days){
+  const dt = new Date(dateStr + "T00:00:00");
+  dt.setDate(dt.getDate() + days);
+  return dt.toISOString().slice(0, 10);
+}
+function localDayKey(d){
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+
+/* ==========================================================================
+   3. CHAPTER & OVERALL PROGRESS CALCULATIONS
+   ========================================================================== */
+function chapterCompletionPct(ch){
+  const n = ch.ncert;
+  const p = ch.practice;
+  const r = ch.revision;
+  const checks = [
+    n.theory, n.intext, n.exercise,
+    p.mcq, p.ar, p.case, p.pyq, p.exemplar,
+    r.r1
+  ];
+  if(ch.hasNumericals) checks.push(p.numericals);
+  const done = checks.filter(Boolean).length;
+  return Math.round((done / checks.length) * 100);
+}
+
+function isChapterComplete(ch){
+  return ch.ncert.theory && ch.ncert.intext && ch.ncert.exercise && ch.practice.pyq && ch.revision.r1;
+}
+
+function computeStats(){
+  const totalChapters = chapters.length;
+  const completedChapters = chapters.filter(isChapterComplete).length;
+  const avgPct = Math.round(chapters.reduce((acc, c) => acc + chapterCompletionPct(c), 0) / (totalChapters || 1));
+
+  let ncertDone = 0, ncertTotal = totalChapters * 3;
+  let pracDone = 0, pracTotal = 0;
+  let rev1Done = 0, rev2Done = 0, rev3Done = 0;
+  let totalQSolved = 0, totalQGoal = 0;
+
+  chapters.forEach(c => {
+    if(c.ncert.theory) ncertDone++;
+    if(c.ncert.intext) ncertDone++;
+    if(c.ncert.exercise) ncertDone++;
+
+    const pKeys = ["mcq","ar","case","pyq","exemplar"];
+    if(c.hasNumericals) pKeys.push("numericals");
+    pracTotal += pKeys.length;
+    pKeys.forEach(k => { if(c.practice[k]) pracDone++; });
+
+    if(c.revision.r1) rev1Done++;
+    if(c.revision.r2) rev2Done++;
+    if(c.revision.r3) rev3Done++;
+
+    totalQSolved += Number(c.qSolved || 0);
+    totalQGoal += Number(c.qGoal || 0);
+  });
+
+  const todayEntry = plannerData[localDayKey(new Date())] || {tasks:[]};
+  const pendingToday = (todayEntry.tasks || []).filter(t => !t.done).length;
+
+  return {
+    totalChapters,
+    completedChapters,
+    avgPct,
+    ncertPct: Math.round((ncertDone / (ncertTotal || 1)) * 100),
+    practicePct: Math.round((pracDone / (pracTotal || 1)) * 100),
+    rev1Pct: Math.round((rev1Done / (totalChapters || 1)) * 100),
+    rev1Done, rev2Done, rev3Done,
+    totalQSolved, totalQGoal,
+    pendingToday
+  };
+}
+
+/* ==========================================================================
+   4. PERSISTENCE & NATIVE WIDGET / OFFLINE SYNC
+   ========================================================================== */
+function saveAllState(){
+  localStorage.setItem("exams2027", JSON.stringify(exams));
+  localStorage.setItem("scienceChapters2027", JSON.stringify(chapters));
+  localStorage.setItem("scienceRoadmap2027", JSON.stringify(roadmap));
+  localStorage.setItem("studyPlanner2027", JSON.stringify(plannerData));
+  localStorage.setItem("mockTests2027", JSON.stringify(mockTests));
+  syncWidgetBridge();
+  renderAll();
+}
+
+function syncWidgetBridge(){
+  const now = new Date();
+  const list = sortedExams();
+  const next = list.find(e => examDate(e) > now);
+  const [maths, science] = pinnedExams();
+  const stats = computeStats();
+
+  const payload = {
+    updatedAt: now.toISOString(),
+    nextExam: next ? {
+      subject: next.subject,
+      date: next.date,
+      time: next.time,
+      daysLeft: Math.max(0, Math.ceil((examDate(next) - now) / 86400000))
+    } : null,
+    mathsExam: maths ? {
+      date: maths.date,
+      daysLeft: Math.max(0, Math.ceil((examDate(maths) - now) / 86400000))
+    } : null,
+    scienceExam: science ? {
+      date: science.date,
+      daysLeft: Math.max(0, Math.ceil((examDate(science) - now) / 86400000))
+    } : null,
+    scienceProgress: {
+      overallPct: sciAvg(),
+      chaptersCompleted: `${stats.completedChapters}/${stats.totalChapters}`,
+      ncertPct: stats.ncertPct,
+      practicePct: stats.practicePct,
+      revision1Pct: stats.rev1Pct,
+      pendingTasksToday: stats.pendingToday,
+      mockTestsLogged: mockTests.length
+    }
+  };
+
+  const json = JSON.stringify(payload, null, 2);
+  localStorage.setItem("cbseWidgetSummary2027", json);
+  try{ syncAllWidgetsData(); }catch(e){}
+
+  if($("widgetPayloadPreview")){
+    $("widgetPayloadPreview").textContent = json;
+  }
+
+  // Native Android WebView / TWA JavascriptInterface hook if available
+  try{
+    if(window.AndroidWidgetBridge && typeof window.AndroidWidgetBridge.updateWidgetData === "function"){
+      window.AndroidWidgetBridge.updateWidgetData(json);
+    }
+  }catch(e){}
+}
+
+/* ==========================================================================
+   5. NAVIGATION TABS
+   ========================================================================== */
+function switchTab(tabId){
+  document.querySelectorAll(".tabbtn, .bnavbtn").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.tab === tabId);
+  });
+  document.querySelectorAll(".view").forEach(v => {
+    v.classList.toggle("active", v.id === "view-" + tabId);
+  });
+  if(location.hash !== "#" + tabId){
+    history.replaceState(null, "", "#" + tabId);
+  }
+}
+
+document.querySelectorAll(".tabbtn, .bnavbtn").forEach(btn => {
+  btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+});
+
+/* ==========================================================================
+   6. EXAM COUNTDOWNS, SCHEDULE & REMINDERS (ORIGINAL + DUAL COUNTDOWN)
+   ========================================================================== */
+function examDate(e){
+  return new Date(e.date + "T" + (e.time || "10:30") + ":00");
+}
+function sortedExams(){
+  return [...exams].sort((a,b) => examDate(a) - examDate(b));
+}
+
+function updateCountdowns(){
+  const now = new Date();
+  const list = sortedExams();
+  const next = list.find(e => examDate(e) > now);
+  const done = list.filter(e => examDate(e) <= now);
+
+  $("examCount").textContent = list.length + " scheduled papers";
+  $("upcomingCount").textContent = list.length - done.length;
+  $("completedCount").textContent = done.length;
+  $("progressBar").style.width = (done.length / list.length * 100) + "%";
+  $("progressText").textContent = done.length + " of " + list.length + " exam dates passed";
+
+  if(next){
+    const diff = examDate(next) - now;
+    $("heroSubject").textContent = next.subject;
+    $("heroDate").textContent = fmtDate(next.date) + " · " + next.time + " · Local time";
+    $("days").textContent = Math.floor(diff / 86400000);
+    $("hours").textContent = Math.floor(diff / 3600000) % 24;
+    $("minutes").textContent = Math.floor(diff / 60000) % 60;
+    $("seconds").textContent = Math.floor(diff / 1000) % 60;
+    $("nextTag").textContent = "NEXT: " + fmtDate(next.date);
+  } else {
+    $("heroSubject").textContent = "All scheduled exam dates have passed";
+    $("heroDate").textContent = "You can update the schedule in Settings";
+    ["days","hours","minutes","seconds"].forEach(x => $(x).textContent = "0");
+  }
+
+  // Pinned papers (default: Maths & Science; change in Settings)
+  const [maths, science] = pinnedExams();
+  const setDual = (e, p, titleId, dateId) => {
+    if(!e){
+      $(titleId).textContent = "Not scheduled";
+      $(dateId).textContent = "Pick a paper in Settings";
+      ["Days","Hours","Mins","Secs"].forEach(x => $(p + x).textContent = "--");
+      return null;
+    }
+    $(titleId).textContent = e.subject;
+    $(dateId).textContent = fmtDate(e.date) + " · " + (e.time || "10:30") + " IST";
+    const d = Math.max(0, examDate(e) - now);
+    $(p + "Days").textContent = Math.floor(d / 86400000);
+    $(p + "Hours").textContent = Math.floor(d / 3600000) % 24;
+    $(p + "Mins").textContent = Math.floor(d / 60000) % 60;
+    $(p + "Secs").textContent = Math.floor(d / 1000) % 60;
+    return d;
+  };
+  const mDiff = setDual(maths, "m", "mathsTitle", "mathsDateLbl");
+  const sDiff = setDual(science, "s", "scienceTitle", "scienceDateLbl");
+  $("mathsBadge").textContent = mDiff === null ? "—" : mDiff === 0 ? "COMPLETED" : Math.ceil(mDiff / 86400000) + " DAYS LEFT";
+  const sciLike = science && /science/i.test(science.subject) && !/computer|social/i.test(science.subject);
+  $("scienceBadge").textContent = sDiff === null ? "—" : sciLike ? "SYLLABUS: " + sciAvg() + "%" : (sDiff === 0 ? "COMPLETED" : Math.ceil(sDiff / 86400000) + " DAYS LEFT");
+}
+
+function renderScheduleAndReminders(){
+  const now = new Date();
+  const list = sortedExams();
+  const next = list.find(e => examDate(e) > now);
+
+  $("examList").innerHTML = list.map(e => {
+    const passed = examDate(e) <= now;
+    const isNext = next && next.id === e.id;
+    return `<div class="exam ${isNext ? "active" : ""}">
+      <div class="date">${fmtDate(e.date)}<small>${e.time || "10:30"} IST</small></div>
+      <div>
+        <div class="subject">${escapeHtml(e.subject)}</div>
+        <div class="exammeta">${passed ? "Scheduled date passed" : isNext ? "Your next paper" : "Upcoming paper"}</div>
+      </div>
+      <span class="status ${isNext ? "next" : ""}">${passed ? "PASSED" : isNext ? "NEXT" : "UPCOMING"}</span>
+    </div>`;
+  }).join("");
+
+  $("reminderBtn").textContent = reminders ? "On" : "Off";
+  $("remSummarySub").textContent = reminderTimes.length
+    ? reminderTimes.slice().sort().map(t => new Date("2000-01-01T"+t+":00").toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",hour12:true})).join(", ")
+    : "No times configured";
+
+  $("homeReminderList").innerHTML = reminderTimes.length
+    ? reminderTimes.slice().sort().map(t => `<div class="remcard"><b>${new Date("2000-01-01T"+t+":00").toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",hour12:true})}</b><small>${reminders ? "Daily countdown & study alert" : "Paused"}</small></div>`).join("")
+    : `<div class="sub">No daily reminders added.</div>`;
+}
+
+function notify(title, body){
+  if("Notification" in window && Notification.permission === "granted"){
+    new Notification(title, {body, icon:"icon.svg", tag:"exam-reminder"});
+  }
+}
+
+function checkReminders(){
+  if(!reminders) return;
+  const n = new Date();
+  const e = sortedExams().find(x => examDate(x) > n);
+  if(!e) return;
+
+  const day = localDayKey(n);
+  const time = String(n.getHours()).padStart(2,"0") + ":" + String(n.getMinutes()).padStart(2,"0");
+
+  if(reminderTimes.includes(time) && lastAlerts[day + "-" + time] !== true){
+    const remaining = Math.max(0, Math.ceil((examDate(e) - n) / 86400000));
+    const stats = computeStats();
+    notify(
+      "CBSE Exam & Study Reminder",
+      `${e.subject}: ${remaining} days left · Science Progress: ${stats.avgPct}% · Pending tasks today: ${stats.pendingToday}`
+    );
+    lastAlerts[day + "-" + time] = true;
+    localStorage.setItem("alertHistory", JSON.stringify(lastAlerts));
+  }
+
+  for(const [label, ms] of [["7d", 7*86400000], ["3d", 3*86400000], ["1d", 86400000], ["1h", 3600000]]){
+    if(examDate(e) - n <= ms && examDate(e) - n > ms - 60000 && lastAlerts[e.id + label] !== true){
+      notify("Upcoming exam: " + e.subject, `Your paper is coming up in ${label}.`);
+      lastAlerts[e.id + label] = true;
+      localStorage.setItem("alertHistory", JSON.stringify(lastAlerts));
+    }
+  }
+}
+
+/* ==========================================================================
+   7. SCIENCE STUDY ROADMAP (50 DAYS + 15 DAYS + FINAL REVISION)
+   ========================================================================== */
+function renderRoadmap(){
+  const start = roadmap.startDate || new Date().toISOString().slice(0,10);
+  $("roadmapStartInput").value = start;
+
+  const p1End = addDays(start, 49);
+  const p2Start = addDays(start, 50);
+  const p2End = addDays(start, 64);
+
+  const stats = computeStats();
+  const scienceExam = sortedExams().find(e => e.id === 2 || (/science/i.test(e.subject) && !/computer|social/i.test(e.subject)));
+  const mathsExam = sortedExams().find(e => e.id === 1 || /math/i.test(e.subject));
+  const sciDateStr = scienceExam ? fmtDate(scienceExam.date) : "22 Feb 2027";
+  const mathDateStr = mathsExam ? fmtDate(mathsExam.date) : "17 Feb 2027";
+
+  $("roadmapSummaryText").textContent = `50-Day Syllabus (${fmtDate(start)} – ${fmtDate(p1End)}) → 15-Day Revision (${fmtDate(p2Start)} – ${fmtDate(p2End)}) → Final Revision (${mathDateStr} – ${sciDateStr}).`;
+
+  const phases = [
+    {
+      num:1, cls:"p1", label:"PHASE 1 · 50 DAYS",
+      title:"Syllabus Completion",
+      dates:`${fmtDate(start)} → ${fmtDate(p1End)}`,
+      desc:"Complete NCERT Theory, In-Text Questions, Back Exercises & core PYQs across all 13 chapters (~3.8 days per chapter).",
+      pct: Math.round((stats.ncertPct + stats.practicePct) / 2),
+      metric:`${stats.completedChapters}/${stats.totalChapters} chapters core-ready`
+    },
+    {
+      num:2, cls:"p2", label:"PHASE 2 · 15 DAYS",
+      title:"Intensive Revision & Mocks",
+      dates:`${fmtDate(p2Start)} → ${fmtDate(p2End)}`,
+      desc:"Execute Revision Cycle 1 & 2, NCERT Exemplar, Assertion-Reason drills, and full 3-hour sample papers.",
+      pct: stats.rev1Pct,
+      metric:`${stats.rev1Done}/${stats.totalChapters} chapters revised (Rev 1)`
+    },
+    {
+      num:3, cls:"p3", label:"PHASE 3 · FINAL SPRINT",
+      title:"Exam-Gap Final Revision",
+      dates:`${mathDateStr} → ${sciDateStr}`,
+      desc:"Post-Mathematics rapid consolidation: chemical reactions, ray/circuit diagrams, formulas, and mistake notebook review.",
+      pct: Math.round((stats.rev3Done / stats.totalChapters) * 100),
+      metric:`${stats.rev3Done}/${stats.totalChapters} chapters final-revised`
+    }
+  ];
+
+  $("roadmapPhases").innerHTML = phases.map(p => `
+    <div class="panel phasecard">
+      <div>
+        <div class="phasehead">
+          <span class="phasepill ${p.cls}">${p.label}</span>
+          <span class="sub" style="font-size:11.5px">${p.dates}</span>
+        </div>
+        <h3 style="margin:10px 0 6px">${p.title}</h3>
+        <div class="sub" style="font-size:12.5px">${p.desc}</div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:8px">
+          <span>${p.metric}</span>
+          <b>${p.pct}%</b>
+        </div>
+        <div class="progress ${p.num===2?"blue":p.num===3?"green":""}"><i style="width:${p.pct}%"></i></div>
+      </div>
+    </div>
+  `).join("");
+
+  $("roadmapMilestones").innerHTML = roadmap.milestones.map((m, idx) => `
+    <div class="taskitem ${m.done ? "done" : ""}">
+      <input type="checkbox" ${m.done ? "checked" : ""} onchange="toggleMilestone(${idx})" style="accent-color:var(--orange);width:17px;height:17px;cursor:pointer">
+      <div class="tasktitle">${escapeHtml(m.title)}</div>
+      <span class="phasepill p${m.phase}">Phase ${m.phase}</span>
+    </div>
+  `).join("");
+}
+
+window.toggleMilestone = function(idx){
+  roadmap.milestones[idx].done = !roadmap.milestones[idx].done;
+  saveAllState();
+};
+
+$("roadmapStartInput").addEventListener("change", e => {
+  if(e.target.value){
+    roadmap.startDate = e.target.value;
+    saveAllState();
+  }
+});
+
+$("autoAssignTargetsBtn").addEventListener("click", () => {
+  const start = roadmap.startDate || new Date().toISOString().slice(0,10);
+  // Distribute 13 chapters evenly across 50 days (~3.84 days per chapter)
+  chapters.forEach((ch, idx) => {
+    const offset = Math.min(49, Math.round((idx + 1) * (50 / chapters.length)) - 1);
+    ch.targetDate = addDays(start, offset);
+  });
+  saveAllState();
+  alert("Chapter target dates distributed across your 50-day syllabus phase.");
+});
+
+/* ==========================================================================
+   8. CHAPTER-WISE, NCERT & PRACTICE TRACKER
+   ========================================================================== */
+function renderChapters(){
+  renderDiscChips();
+  const q = ($("chapterSearch").value || "").toLowerCase().trim();
+  const prioF = $("prioFilter").value;
+  const statusF = $("statusFilter").value;
+
+  const filtered = chapters.filter(ch => {
+    if(activeDiscFilter !== "ALL" && ch.discipline !== activeDiscFilter) return false;
+    if(prioF !== "ALL" && ch.priority !== prioF) return false;
+    const pct = chapterCompletionPct(ch);
+    if(statusF === "COMPLETED" && pct < 100) return false;
+    if(statusF === "IN_PROGRESS" && (pct === 0 || pct === 100)) return false;
+    if(statusF === "NOT_STARTED" && pct > 0) return false;
+    if(q && !ch.name.toLowerCase().includes(q) && !ch.topics.toLowerCase().includes(q) && !ch.code.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  if(!filtered.length){
+    $("chapterList").innerHTML = `<div class="panel" style="padding:24px;text-align:center;color:var(--muted)">No chapters match the current filter.</div>`;
+    return;
+  }
+
+  $("chapterList").innerHTML = filtered.map(ch => {
+    const pct = chapterCompletionPct(ch);
+    const nDone = [ch.ncert.theory, ch.ncert.intext, ch.ncert.exercise].filter(Boolean).length;
+    const pKeys = ch.hasNumericals ? ["mcq","ar","case","numericals","pyq","exemplar"] : ["mcq","ar","case","pyq","exemplar"];
+    const pDone = pKeys.filter(k => ch.practice[k]).length;
+
+    return `
+      <div class="panel chapcard">
+        <div class="chaptop">
+          <div style="flex:1;min-width:240px">
+            <div class="chapbadges">
+              <span ${discAttr(ch.discipline)}>${ch.discipline} · ${ch.code}</span>
+              <span class="prio ${ch.priority}">${ch.priority} Priority</span>
+              <span class="status ${pct===100?"next":""}">${pct === 100 ? "COMPLETED" : pct > 0 ? "IN PROGRESS ("+pct+"%)" : "NOT STARTED"}</span>
+            </div>
+            <div class="chapname">${escapeHtml(ch.name)}</div>
+            <div class="sub" style="font-size:12px;margin-top:3px">${escapeHtml(ch.topics)}</div>
+            <div class="chapmeta">
+              <span>🎯 Target: <b>${ch.targetDate ? fmtDate(ch.targetDate) : "Set date"}</b></span>
+              <span>🧮 Questions: <b>${ch.qSolved || 0}/${ch.qGoal || 60}</b></span>
+              ${ch.notes ? `<span>📝 ${escapeHtml(ch.notes)}</span>` : ""}
+            </div>
+          </div>
+
+          <div class="chapcontrols">
+            <button class="sm" onclick="incrementChapterQ('${ch.id}', 5)">+5 Qs</button>
+            <button class="sm" onclick="openChapterModal('${ch.id}')">✎ Edit Target</button>
+          </div>
+        </div>
+
+        <div class="progress ${pct===100?"green":""}" style="margin:11px 0 4px"><i style="width:${pct}%"></i></div>
+
+        <div class="trackrows">
+          <!-- NCERT TRACKER -->
+          <div class="trackgroup">
+            <div class="trackgrouptitle"><span>📖 NCERT Tracker</span><span>${nDone}/3</span></div>
+            <div class="checkgrid">
+              <label class="chk ${ch.ncert.theory?"done":""}"><input type="checkbox" ${ch.ncert.theory?"checked":""} onchange="toggleChapFlag('${ch.id}','ncert','theory')">Theory</label>
+              <label class="chk ${ch.ncert.intext?"done":""}"><input type="checkbox" ${ch.ncert.intext?"checked":""} onchange="toggleChapFlag('${ch.id}','ncert','intext')">In-Text Qs</label>
+              <label class="chk ${ch.ncert.exercise?"done":""}"><input type="checkbox" ${ch.ncert.exercise?"checked":""} onchange="toggleChapFlag('${ch.id}','ncert','exercise')">Exercise</label>
+            </div>
+          </div>
+
+          <!-- PRACTICE TRACKER -->
+          <div class="trackgroup">
+            <div class="trackgrouptitle"><span>✍️ Practice Tracker</span><span>${pDone}/${pKeys.length}</span></div>
+            <div class="checkgrid">
+              <label class="chk ${ch.practice.mcq?"done":""}"><input type="checkbox" ${ch.practice.mcq?"checked":""} onchange="toggleChapFlag('${ch.id}','practice','mcq')">MCQs</label>
+              <label class="chk ${ch.practice.ar?"done":""}"><input type="checkbox" ${ch.practice.ar?"checked":""} onchange="toggleChapFlag('${ch.id}','practice','ar')">Assertion-Reason</label>
+              <label class="chk ${ch.practice.case?"done":""}"><input type="checkbox" ${ch.practice.case?"checked":""} onchange="toggleChapFlag('${ch.id}','practice','case')">Case-Based</label>
+              ${ch.hasNumericals ? `<label class="chk ${ch.practice.numericals?"done":""}"><input type="checkbox" ${ch.practice.numericals?"checked":""} onchange="toggleChapFlag('${ch.id}','practice','numericals')">Numericals</label>` : ""}
+              <label class="chk ${ch.practice.pyq?"done":""}"><input type="checkbox" ${ch.practice.pyq?"checked":""} onchange="toggleChapFlag('${ch.id}','practice','pyq')">PYQs</label>
+              <label class="chk ${ch.practice.exemplar?"done":""}"><input type="checkbox" ${ch.practice.exemplar?"checked":""} onchange="toggleChapFlag('${ch.id}','practice','exemplar')">Exemplar</label>
+            </div>
+          </div>
+
+          <!-- QUICK REVISION STATUS -->
+          <div class="trackgroup">
+            <div class="trackgrouptitle"><span>🔁 Revision Cycles</span><span>${[ch.revision.r1,ch.revision.r2,ch.revision.r3].filter(Boolean).length}/3</span></div>
+            <div class="checkgrid">
+              <label class="chk ${ch.revision.r1?"done":""}"><input type="checkbox" ${ch.revision.r1?"checked":""} onchange="toggleChapFlag('${ch.id}','revision','r1')">Rev 1</label>
+              <label class="chk ${ch.revision.r2?"done":""}"><input type="checkbox" ${ch.revision.r2?"checked":""} onchange="toggleChapFlag('${ch.id}','revision','r2')">Rev 2</label>
+              <label class="chk ${ch.revision.r3?"done":""}"><input type="checkbox" ${ch.revision.r3?"checked":""} onchange="toggleChapFlag('${ch.id}','revision','r3')">Final Rev</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+window.toggleChapFlag = function(chapId, group, key){
+  const ch = chapters.find(c => c.id === chapId);
+  if(!ch) return;
+  ch[group][key] = !ch[group][key];
+  if(group === "revision" && ch[group][key]){
+    ch.revision.lastDate = localDayKey(new Date());
+  }
+  saveAllState();
+};
+
+window.incrementChapterQ = function(chapId, delta){
+  const ch = chapters.find(c => c.id === chapId);
+  if(!ch) return;
+  ch.qSolved = Math.max(0, Number(ch.qSolved || 0) + delta);
+  saveAllState();
+};
+
+window.openChapterModal = function(chapId){
+  const ch = chapters.find(c => c.id === chapId);
+  if(!ch) return;
+  $("editChapId").value = ch.id;
+  $("chapModalTitle").textContent = `${ch.code}: ${ch.name}`;
+  $("editChapPrio").value = ch.priority;
+  $("editChapTargetDate").value = ch.targetDate || "";
+  $("editChapQGoal").value = ch.qGoal || 60;
+  $("editChapQSolved").value = ch.qSolved || 0;
+  $("editChapNotes").value = ch.notes || "";
+  $("chapterModal").classList.add("show");
+};
+
+$("closeChapModal").onclick = () => $("chapterModal").classList.remove("show");
+$("saveChapModalBtn").onclick = () => {
+  const ch = chapters.find(c => c.id === $("editChapId").value);
+  if(ch){
+    ch.priority = $("editChapPrio").value;
+    ch.targetDate = $("editChapTargetDate").value;
+    ch.qGoal = Math.max(1, Number($("editChapQGoal").value || 60));
+    ch.qSolved = Math.max(0, Number($("editChapQSolved").value || 0));
+    ch.notes = $("editChapNotes").value.trim();
+    saveAllState();
+  }
+  $("chapterModal").classList.remove("show");
+};
+
+$("prioFilter").addEventListener("change", renderChapters);
+$("statusFilter").addEventListener("change", renderChapters);
+$("chapterSearch").addEventListener("input", renderChapters);
+
+/* ==========================================================================
+   9. REVISION TRACKER VIEW
+   ========================================================================== */
+function renderRevision(){
+  const stats = computeStats();
+  $("revisionSummaryCards").innerHTML = `
+    <div class="panel stat"><b>${stats.rev1Done}/${chapters.length}</b><small>Revision 1 Completed</small></div>
+    <div class="panel stat"><b>${stats.rev2Done}/${chapters.length}</b><small>Revision 2 Completed</small></div>
+    <div class="panel stat"><b>${stats.rev3Done}/${chapters.length}</b><small>Final Exam Revision</small></div>
+    <div class="panel stat"><b>${chapters.length - stats.rev1Done}</b><small>Chapters Pending Rev 1</small></div>
+  `;
+
+  $("revisionList").innerHTML = chapters.map(ch => {
+    const revCount = [ch.revision.r1, ch.revision.r2, ch.revision.r3].filter(Boolean).length;
+    const statusText = revCount === 3 ? "FULLY REVISED (3/3)" : revCount > 0 ? `REVISED (${revCount}/3)` : "NEEDS REVISION";
+    return `
+      <div class="panel chapcard" style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
+        <div>
+          <div class="chapbadges">
+            <span ${discAttr(ch.discipline)}>${ch.discipline}</span>
+            <span class="prio ${ch.priority}">${ch.priority}</span>
+            <span class="status ${revCount===3?"next":""}">${statusText}</span>
+          </div>
+          <div class="chapname">${escapeHtml(ch.name)}</div>
+          <div class="sub" style="font-size:11.5px;margin-top:3px">
+            Last revised: <b>${ch.revision.lastDate ? fmtDate(ch.revision.lastDate) : "Not yet"}</b> · Core Syllabus: <b>${chapterCompletionPct(ch)}%</b>
+          </div>
+        </div>
+
+        <div class="checkgrid">
+          <label class="chk ${ch.revision.r1?"done":""}"><input type="checkbox" ${ch.revision.r1?"checked":""} onchange="toggleChapFlag('${ch.id}','revision','r1')">1st Revision</label>
+          <label class="chk ${ch.revision.r2?"done":""}"><input type="checkbox" ${ch.revision.r2?"checked":""} onchange="toggleChapFlag('${ch.id}','revision','r2')">2nd Revision</label>
+          <label class="chk ${ch.revision.r3?"done":""}"><input type="checkbox" ${ch.revision.r3?"checked":""} onchange="toggleChapFlag('${ch.id}','revision','r3')">Final Revision</label>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+/* ==========================================================================
+   10. DAILY STUDY PLANNER
+   ========================================================================== */
+function getPlannerDay(dateKey){
+  if(!plannerData[dateKey]){
+    plannerData[dateKey] = {
+      targetHours: 6,
+      loggedHours: 0,
+      note: "",
+      tasks: []
+    };
+  }
+  return plannerData[dateKey];
+}
+
+function renderPlanner(){
+  $("plannerDateInput").value = selectedPlannerDate;
+  $("plannerDateHeader").textContent = fmtDate(selectedPlannerDate);
+  const entry = getPlannerDay(selectedPlannerDate);
+
+  $("dailyTargetHours").value = entry.targetHours;
+  $("dailyLoggedHours").value = entry.loggedHours;
+  $("dailyNoteInput").value = entry.note || "";
+
+  const total = entry.tasks.length;
+  const done = entry.tasks.filter(t => t.done).length;
+  const taskPct = total ? Math.round((done / total) * 100) : 0;
+  const hourPct = entry.targetHours ? Math.min(100, Math.round((entry.loggedHours / entry.targetHours) * 100)) : 0;
+  const combinedPct = total ? Math.round((taskPct + hourPct) / 2) : hourPct;
+
+  $("dailyTaskPct").textContent = `${done}/${total} (${taskPct}%)`;
+  $("dailyProgressBar").style.width = combinedPct + "%";
+
+  if(!entry.tasks.length){
+    $("dailyTaskList").innerHTML = `<div class="sub" style="padding:14px;text-align:center;border:1px dashed var(--line);border-radius:11px">No tasks added for ${fmtDate(selectedPlannerDate)}. Add a task above or pick a quick template.</div>`;
+    return;
+  }
+
+  $("dailyTaskList").innerHTML = entry.tasks.map((t, idx) => `
+    <div class="taskitem ${t.done ? "done" : ""}">
+      <input type="checkbox" ${t.done ? "checked" : ""} onchange="togglePlannerTask(${idx})" style="accent-color:var(--orange);width:17px;height:17px;cursor:pointer">
+      <div style="flex:1">
+        <div class="tasktitle">${escapeHtml(t.title)}</div>
+        <div class="taskmeta">
+          <span>${escapeHtml(t.subject)}</span>
+          <span>• ${escapeHtml(t.priority)} Priority</span>
+        </div>
+      </div>
+      <button type="button" class="danger sm" onclick="deletePlannerTask(${idx})" aria-label="Delete task">✕</button>
+    </div>
+  `).join("");
+}
+
+$("plannerDateInput").addEventListener("change", e => {
+  if(e.target.value){
+    selectedPlannerDate = e.target.value;
+    renderPlanner();
+  }
+});
+$("dailyTargetHours").addEventListener("change", e => {
+  const entry = getPlannerDay(selectedPlannerDate);
+  entry.targetHours = Math.max(0.5, Number(e.target.value || 6));
+  saveAllState();
+});
+$("dailyLoggedHours").addEventListener("change", e => {
+  const entry = getPlannerDay(selectedPlannerDate);
+  entry.loggedHours = Math.max(0, Number(e.target.value || 0));
+  saveAllState();
+});
+$("dailyNoteInput").addEventListener("input", e => {
+  const entry = getPlannerDay(selectedPlannerDate);
+  entry.note = e.target.value;
+  localStorage.setItem("studyPlanner2027", JSON.stringify(plannerData));
+});
+
+$("addTaskForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const title = $("newTaskTitle").value.trim();
+  if(!title) return;
+  const entry = getPlannerDay(selectedPlannerDate);
+  entry.tasks.push({
+    title,
+    subject: $("newTaskSubject").value,
+    priority: $("newTaskPrio").value,
+    done: false
+  });
+  $("newTaskTitle").value = "";
+  saveAllState();
+});
+
+window.addTemplateTask = function(title, subject, priority){
+  const entry = getPlannerDay(selectedPlannerDate);
+  entry.tasks.push({title, subject, priority, done:false});
+  saveAllState();
+};
+window.togglePlannerTask = function(idx){
+  const entry = getPlannerDay(selectedPlannerDate);
+  entry.tasks[idx].done = !entry.tasks[idx].done;
+  saveAllState();
+};
+window.deletePlannerTask = function(idx){
+  const entry = getPlannerDay(selectedPlannerDate);
+  entry.tasks.splice(idx, 1);
+  saveAllState();
+};
+
+/* ==========================================================================
+   11. MOCK TEST TRACKER
+   ========================================================================== */
+$("mockDate").value = localDayKey(new Date());
+
+$("mockForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const title = $("mockTitle").value.trim();
+  const score = Number($("mockScore").value);
+  const max = Number($("mockMax").value || 80);
+  if(!title || isNaN(score) || max <= 0) return;
+
+  mockTests.unshift({
+    id: Date.now(),
+    title,
+    subject: $("mockSubject").value,
+    date: $("mockDate").value,
+    duration: Number($("mockDuration").value || 180),
+    score,
+    max,
+    pct: Math.round((score / max) * 100),
+    mistakes: $("mockMistakes").value.trim()
+  });
+
+  $("mockTitle").value = "";
+  $("mockScore").value = "";
+  $("mockMistakes").value = "";
+  saveAllState();
+});
+
+window.deleteMock = function(id){
+  mockTests = mockTests.filter(m => m.id !== id);
+  saveAllState();
+};
+
+function renderMocks(){
+  const count = mockTests.length;
+  const avgPct = count ? Math.round(mockTests.reduce((a, m) => a + m.pct, 0) / count) : 0;
+  const bestPct = count ? Math.max(...mockTests.map(m => m.pct)) : 0;
+
+  $("mockStatsRow").innerHTML = `
+    <div class="stat"><b>${count}</b><small>Papers Attempted</small></div>
+    <div class="stat"><b>${count ? avgPct + "%" : "--"}</b><small>Average Score (Best: ${count ? bestPct + "%" : "--"})</small></div>
+  `;
+
+  const recent = mockTests.slice(0, 8).reverse();
+  if(!recent.length){
+    $("mockChart").innerHTML = `<div class="sub" style="margin:auto;font-size:12px">Log your first sample paper to view your score trend chart.</div>`;
+    $("mockHistoryList").innerHTML = `<div class="sub" style="font-size:12.5px">No mock tests logged yet.</div>`;
+    return;
+  }
+
+  $("mockChart").innerHTML = recent.map(m => `
+    <div class="barcol" title="${escapeHtml(m.title)}: ${m.score}/${m.max} (${m.pct}%)">
+      <span style="font-size:10px;font-weight:700">${m.pct}%</span>
+      <div class="barfill" style="height:${Math.max(10, m.pct)}%"></div>
+      <span class="barlbl">${escapeHtml(m.subject.slice(0,7))}</span>
+    </div>
+  `).join("");
+
+  $("mockHistoryList").innerHTML = mockTests.map(m => `
+    <div class="mockcard">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+        <div>
+          <div style="font-weight:750">${escapeHtml(m.title)}</div>
+          <div class="sub" style="font-size:11.5px">${escapeHtml(m.subject)} · ${fmtDate(m.date)} · ${m.duration} mins</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="scorebadge">${m.score}/${m.max} (${m.pct}%)</span>
+          <button class="danger sm" onclick="deleteMock(${m.id})">✕</button>
+        </div>
+      </div>
+      ${m.mistakes ? `<div style="margin-top:8px;padding:8px 10px;background:#14171d;border-radius:8px;font-size:12px;color:#ffd0b0"><b>Mistake Log:</b> ${escapeHtml(m.mistakes)}</div>` : ""}
+    </div>
+  `).join("");
+}
+
+/* ==========================================================================
+   12. PROGRESS DASHBOARD & OFFLINE BACKUP / IMPORT
+   ========================================================================== */
+function renderDashboard(){
+  const stats = computeStats();
+  const totalStudyHours = Object.values(plannerData).reduce((a, d) => a + Number(d.loggedHours || 0), 0);
+
+  $("dashTopStats").innerHTML = `
+    <div class="panel stat"><b>${stats.avgPct}%</b><small>Overall Science Progress</small></div>
+    <div class="panel stat"><b>${stats.completedChapters}/${chapters.length}</b><small>Chapters Core-Completed</small></div>
+    <div class="panel stat"><b>${stats.pendingToday}</b><small>Pending Tasks Today</small></div>
+    <div class="panel stat"><b>${totalStudyHours.toFixed(1)}h</b><small>Total Logged Study Hours</small></div>
+  `;
+
+  const disciplines = [...new Set(chapters.map(c => c.discipline))];
+  $("disciplineBreakdown").innerHTML = disciplines.map(disc => {
+    const list = chapters.filter(c => c.discipline === disc);
+    const pct = Math.round(list.reduce((a, c) => a + chapterCompletionPct(c), 0) / (list.length || 1));
+    const done = list.filter(isChapterComplete).length;
+    return `
+      <div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;font-size:13px">
+          <b>${disc} (${done}/${list.length} chapters ready)</b>
+          <b>${pct}%</b>
+        </div>
+        <div class="progress ${disc==="Biology"?"green":disc==="Physics"?"blue":""}"><i style="width:${pct}%"></i></div>
+      </div>
+    `;
+  }).join("");
+
+  $("componentBreakdown").innerHTML = `
+    <div class="statrow">
+      <div class="stat"><b>${stats.ncertPct}%</b><small>NCERT Theory + In-Text + Exercise</small></div>
+      <div class="stat"><b>${stats.practicePct}%</b><small>MCQ + AR + Case + PYQ + Exemplar</small></div>
+      <div class="stat"><b>${stats.rev1Pct}%</b><small>Revision Cycle 1 Coverage</small></div>
+      <div class="stat"><b>${stats.totalQSolved}/${stats.totalQGoal}</b><small>Practice Questions Solved</small></div>
+    </div>
+  `;
+
+  syncWidgetBridge();
+}
+
+$("exportDataBtn").addEventListener("click", () => {
+  const backup = {
+    app: "CBSE Exam Command Center 2027",
+    exportedAt: new Date().toISOString(),
+    exams2027: exams,
+    dailyReminders: reminders ? "on" : "off",
+    reminderTimes,
+    scienceChapters2027: chapters,
+    scienceRoadmap2027: roadmap,
+    studyPlanner2027: plannerData,
+    mockTests2027: mockTests,
+    mySubjects2027: mySubjects,
+    timerLog2027: timerLog,
+    pinnedExams2027: pinnedIds
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "cbse-command-center-2027-backup.json";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+$("importDataBtn").addEventListener("click", () => $("importFileInput").click());
+$("importFileInput").addEventListener("change", e => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try{
+      const data = JSON.parse(ev.target.result);
+      if(Array.isArray(data.exams2027)) exams = data.exams2027;
+      if(Array.isArray(data.reminderTimes)) reminderTimes = data.reminderTimes;
+      if(typeof data.dailyReminders === "string") reminders = data.dailyReminders !== "off";
+      if(Array.isArray(data.scienceChapters2027)) chapters = data.scienceChapters2027;
+      if(data.scienceRoadmap2027) roadmap = data.scienceRoadmap2027;
+      if(data.studyPlanner2027) plannerData = data.studyPlanner2027;
+      if(Array.isArray(data.mockTests2027)) mockTests = data.mockTests2027;
+      if(Array.isArray(data.mySubjects2027) && data.mySubjects2027.length){ mySubjects = data.mySubjects2027.map(String); saveSubjects(); }
+      if(Array.isArray(data.timerLog2027)){ timerLog = data.timerLog2027; localStorage.setItem("timerLog2027", JSON.stringify(timerLog)); }
+      if(Array.isArray(data.pinnedExams2027)){ pinnedIds = data.pinnedExams2027; localStorage.setItem("pinnedExams2027", JSON.stringify(pinnedIds)); }
+
+      localStorage.setItem("dailyReminders", reminders ? "on" : "off");
+      localStorage.setItem("reminderTimes", JSON.stringify(reminderTimes));
+      saveAllState();
+      alert("Backup restored and synced locally!");
+    }catch(err){
+      alert("Invalid backup JSON file.");
+    }
+  };
+  reader.readAsText(file);
+});
+
+$("resetDemoBtn").addEventListener("click", () => {
+  if(confirm("Reset Science chapter progress, roadmap, planner and mock tests? Your Exam Schedule & Reminders will remain intact.")){
+    chapters = JSON.parse(JSON.stringify(DEFAULT_CHAPTERS));
+    roadmap = JSON.parse(JSON.stringify(DEFAULT_ROADMAP));
+    plannerData = {};
+    mockTests = [];
+    saveAllState();
+  }
+});
+
+/* ==========================================================================
+   13. SETTINGS MODAL (EXAM SCHEDULE + UNLIMITED DAILY REMINDER TIMES)
+   ========================================================================== */
+let tempReminderTimes = [];
+
+function renderModalReminders(){
+  $("reminderFields").innerHTML = tempReminderTimes.map((t, i) => `
+    <div style="display:flex;gap:8px;align-items:center;margin:8px 0">
+      <input type="time" data-rem-idx="${i}" value="${t}" style="flex:1;background:#090b0e;color:#fff;border:1px solid #363b44;border-radius:9px;padding:9px">
+      <button type="button" class="danger sm" onclick="removeModalReminder(${i})">Remove</button>
+    </div>
+  `).join("") || `<div class="sub" style="margin:8px 0">No reminder times set. Click "+ Add reminder time" below.</div>`;
+}
+
+window.removeModalReminder = function(idx){
+  syncTempRemindersFromInputs();
+  tempReminderTimes.splice(idx, 1);
+  renderModalReminders();
+};
+
+function syncTempRemindersFromInputs(){
+  document.querySelectorAll("[data-rem-idx]").forEach(inp => {
+    const idx = Number(inp.dataset.remIdx);
+    if(inp.value) tempReminderTimes[idx] = inp.value;
+  });
+}
+
+$("addReminderBtn").onclick = () => {
+  syncTempRemindersFromInputs();
+  tempReminderTimes.push("20:00");
+  renderModalReminders();
+};
+
+/* ==========================================================================
+   V4. SUBJECTS, EXAM PAPERS, CHAPTER EDITOR, PINNED CARDS & STUDY TIMER
+   ========================================================================== */
+const pad2 = n => String(n).padStart(2, "0");
+
+/* ---------- user subjects ---------- */
+const DEFAULT_SUBJECTS = ["Science", "Mathematics", "Social Science", "English", "Hindi", "Sanskrit", "Computer Science"];
+let mySubjects = (() => {
+  try{ const v = JSON.parse(localStorage.getItem("mySubjects2027") || "null"); if(Array.isArray(v) && v.length) return v.map(String); }catch(e){}
+  return [...DEFAULT_SUBJECTS];
+})();
+function saveSubjects(){ localStorage.setItem("mySubjects2027", JSON.stringify(mySubjects)); }
+function subjectChoices(){
+  const out = [];
+  mySubjects.forEach(n => {
+    if(/^science$/i.test(n)) out.push(["Science - Physics","Science · Physics"], ["Science - Chemistry","Science · Chemistry"], ["Science - Biology","Science · Biology"]);
+    else out.push([n, n]);
+  });
+  out.push(["Other Subject", "Other Subject"]);
+  return out;
+}
+function optionsHTML(sel){
+  const list = subjectChoices();
+  if(sel && !list.some(x => x[0] === sel)) list.unshift([sel, sel]);
+  return list.map(([v, l]) => `<option value="${escapeHtml(v)}"${v === sel ? " selected" : ""}>${escapeHtml(l)}</option>`).join("");
+}
+function fillSubjectSelects(){
+  const t = $("newTaskSubject"); if(t && document.activeElement !== t){ const cur = t.value; t.innerHTML = optionsHTML(cur); }
+  const m = $("mockSubject");
+  if(m && document.activeElement !== m){
+    const cur = m.value, list = [...mySubjects, "Other"];
+    if(cur && !list.includes(cur)) list.unshift(cur);
+    m.innerHTML = list.map(n => `<option value="${escapeHtml(n)}"${n === cur ? " selected" : ""}>${escapeHtml(n)}</option>`).join("");
+  }
+  const ts = $("timerSubject");
+  if(ts && document.activeElement !== ts){ const cur = ts.value; ts.innerHTML = optionsHTML(cur); }
+}
+function renderSubjectManager(){
+  const el = $("subjectManager"); if(!el) return;
+  el.innerHTML = `
+    <div class="sectionhead" style="margin-top:20px"><h2>MY SUBJECTS</h2><span>Timer, planner, mocks &amp; chapters</span></div>
+    <div class="notice">Add or remove your own subjects. They appear in Study Timer, Daily Planner, Mock Tests and Chapters.</div>
+    ${mySubjects.map((n, i) => `<div style="display:flex;gap:8px;align-items:center;margin:6px 0"><div style="flex:1;padding:9px 11px;border:1px solid #363b44;border-radius:9px;background:#090b0e">${escapeHtml(n)}</div><button type="button" class="danger sm" onclick="removeSubject(${i})">Remove</button></div>`).join("")}
+    <div style="display:flex;gap:8px;margin-top:8px"><input id="newSubjectInput" maxlength="40" placeholder="New subject (e.g. Maths-2, Art)" style="flex:1;background:#090b0e;color:#fff;border:1px solid #363b44;border-radius:9px;padding:9px 11px"><button type="button" class="primary sm" onclick="addSubject()">＋ Add</button></div>`;
+}
+window.addSubject = function(){
+  const inp = $("newSubjectInput"), v = (inp.value || "").trim().slice(0, 40);
+  if(!v) return;
+  if(mySubjects.some(x => x.toLowerCase() === v.toLowerCase())){ alert("This subject already exists."); return; }
+  mySubjects.push(v); saveSubjects(); renderSubjectManager(); fillSubjectSelects();
+  const i2 = $("newSubjectInput"); if(i2) i2.focus();
+};
+window.removeSubject = function(i){
+  if(mySubjects.length <= 1){ alert("Keep at least one subject."); return; }
+  if(!confirm('Remove "' + mySubjects[i] + '"? Old records stay safe.')) return;
+  mySubjects.splice(i, 1); saveSubjects(); renderSubjectManager(); fillSubjectSelects();
+};
+
+/* ---------- Science-only syllabus % (home card) ---------- */
+function sciAvg(){
+  const list = chapters.filter(c => (c.subject || "Science") === "Science");
+  if(!list.length) return 0;
+  return Math.round(list.reduce((a, c) => a + chapterCompletionPct(c), 0) / list.length);
+}
+
+/* ---------- pinned papers for the two home countdown cards ---------- */
+let pinnedIds = (() => { try{ return JSON.parse(localStorage.getItem("pinnedExams2027") || "null"); }catch(e){ return null; } })();
+function pinnedExams(){
+  const list = sortedExams();
+  const find = id => list.find(e => String(e.id) === String(id));
+  let a = pinnedIds && find(pinnedIds[0]);
+  let b = pinnedIds && find(pinnedIds[1]);
+  if(!a) a = list.find(e => e.id === 1 || /math/i.test(e.subject)) || list[0] || null;
+  if(!b) b = list.find(e => e.id === 2 || (/science/i.test(e.subject) && !/computer|social/i.test(e.subject))) || list.find(e => e !== a) || null;
+  return [a, b];
+}
+
+/* ---------- chapter groups, colours, add / edit / delete ---------- */
+function discAttr(name){
+  if(["Chemistry", "Biology", "Physics"].includes(name)) return `class="disc ${name}"`;
+  let h = 0; for(const c of String(name)) h = (h * 31 + c.charCodeAt(0)) % 360;
+  return `class="disc Custom" style="background:hsl(${h} 40% 17%);color:hsl(${h} 85% 78%);border:1px solid hsl(${h} 40% 34%)"`;
+}
+function renderDiscChips(){
+  const box = $("discChips"); if(!box) return;
+  const groups = [...new Set(chapters.map(c => c.discipline))];
+  if(activeDiscFilter !== "ALL" && !groups.includes(activeDiscFilter)) activeDiscFilter = "ALL";
+  box.innerHTML = `<button class="chip ${activeDiscFilter === "ALL" ? "active" : ""}" data-disc="ALL">All (${chapters.length})</button>` +
+    groups.map(g => `<button class="chip ${activeDiscFilter === g ? "active" : ""}" data-disc="${escapeHtml(g)}">${escapeHtml(g)} (${chapters.filter(c => c.discipline === g).length})</button>`).join("");
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest && e.target.closest("[data-disc]");
+  if(!b) return;
+  activeDiscFilter = b.dataset.disc;
+  renderChapters();
+});
+function openChapterEditor(id){
+  const ch = id ? chapters.find(c => c.id === id) : null;
+  $("editChapId").value = ch ? ch.id : "";
+  $("chapModalTitle").textContent = ch ? `${ch.code}: ${ch.name}` : "Add new chapter";
+  const subj = ch ? (ch.subject || "Science") : (mySubjects[0] || "Science");
+  const list = [...mySubjects]; if(!list.includes(subj)) list.unshift(subj);
+  $("editChapSubject").innerHTML = list.map(n => `<option value="${escapeHtml(n)}"${n === subj ? " selected" : ""}>${escapeHtml(n)}</option>`).join("") + `<option value="__new__">＋ New subject…</option>`;
+  $("editChapNewSubjectBox").hidden = true; $("editChapNewSubject").value = "";
+  $("editChapGroup").value = ch ? ch.discipline : "";
+  $("editChapName").value = ch ? ch.name : "";
+  $("editChapTopics").value = ch ? (ch.topics || "") : "";
+  $("editChapNum").checked = ch ? !!ch.hasNumericals : false;
+  $("editChapPrio").value = ch ? ch.priority : "Medium";
+  $("editChapTargetDate").value = ch ? (ch.targetDate || "") : "";
+  $("editChapQGoal").value = ch ? (ch.qGoal || 60) : 60;
+  $("editChapQSolved").value = ch ? (ch.qSolved || 0) : 0;
+  $("editChapNotes").value = ch ? (ch.notes || "") : "";
+  $("deleteChapBtn").hidden = !ch;
+  $("chapterModal").classList.add("show");
+}
+window.openChapterModal = openChapterEditor;
+$("addChapterBtn").onclick = () => openChapterEditor("");
+$("editChapSubject").addEventListener("change", e => { $("editChapNewSubjectBox").hidden = e.target.value !== "__new__"; });
+$("saveChapModalBtn").onclick = () => {
+  const id = $("editChapId").value, name = $("editChapName").value.trim();
+  if(!name){ alert("Please enter the chapter name."); return; }
+  let subj = $("editChapSubject").value;
+  if(subj === "__new__"){
+    subj = $("editChapNewSubject").value.trim().slice(0, 40);
+    if(!subj){ alert("Please type the new subject name."); return; }
+    if(!mySubjects.some(x => x.toLowerCase() === subj.toLowerCase())){ mySubjects.push(subj); saveSubjects(); }
+  }
+  const group = $("editChapGroup").value.trim().slice(0, 30) || subj;
+  const base = {
+    name, topics: $("editChapTopics").value.trim(), subject: subj, discipline: group,
+    hasNumericals: $("editChapNum").checked, priority: $("editChapPrio").value,
+    targetDate: $("editChapTargetDate").value,
+    qGoal: Math.max(1, Number($("editChapQGoal").value || 60)),
+    qSolved: Math.max(0, Number($("editChapQSolved").value || 0)),
+    notes: $("editChapNotes").value.trim()
+  };
+  if(id){
+    const ch = chapters.find(c => c.id === id);
+    if(ch) Object.assign(ch, base);
+  }else{
+    const n = chapters.filter(c => c.discipline === group).length + 1;
+    chapters.push({
+      id: "c" + Date.now().toString(36), code: (group.replace(/[^A-Za-z0-9]/g, "").slice(0, 3).toUpperCase() || "CH") + "-" + pad2(n), ...base,
+      ncert: {theory:false, intext:false, exercise:false},
+      practice: {mcq:false, ar:false, case:false, numericals:false, pyq:false, exemplar:false},
+      revision: {r1:false, r2:false, r3:false, lastDate:""}
+    });
+  }
+  $("chapterModal").classList.remove("show");
+  saveAllState();
+};
+$("deleteChapBtn").onclick = () => {
+  const id = $("editChapId").value, ch = chapters.find(c => c.id === id);
+  if(!ch) return;
+  if(!confirm('Delete chapter "' + ch.name + '" and its progress?')) return;
+  chapters = chapters.filter(c => c.id !== id);
+  $("chapterModal").classList.remove("show");
+  saveAllState();
+};
+$("closeChapModal").onclick = () => $("chapterModal").classList.remove("show");
+
+/* ---------- exam settings modal: add / remove papers, pinned cards ---------- */
+let tempExams = [], tempPins = null;
+function syncTempExamsFromInputs(){
+  tempExams.forEach((e, i) => {
+    const d = document.querySelector(`[data-date="${i}"]`), t = document.querySelector(`[data-time="${i}"]`), su = document.querySelector(`[data-subject="${i}"]`);
+    if(d && d.value) e.date = d.value;
+    if(t && t.value) e.time = t.value;
+    if(su) e.subject = su.value.trim() || e.subject;
+  });
+  const p1 = $("pin1"), p2 = $("pin2");
+  if(p1 && p2) tempPins = [p1.value, p2.value];
+}
+function renderExamFields(){
+  $("editFields").innerHTML = tempExams.map((e, i) => `
+    <div class="exrow">
+      <div class="top"><b>${escapeHtml(e.subject)}</b><button type="button" class="danger sm" onclick="removeExamRow(${i})">Remove</button></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <input type="date" data-date="${i}" value="${e.date}">
+        <input type="time" data-time="${i}" value="${e.time || "10:30"}">
+      </div>
+      <input data-subject="${i}" value="${escapeHtml(e.subject)}" aria-label="Subject name" maxlength="60" style="margin-top:8px">
+    </div>`).join("") + `<button type="button" onclick="addExamRow()">＋ Add exam paper</button>`;
+  const opts = sel => tempExams.map(e => `<option value="${e.id}"${String(e.id) === String(sel) ? " selected" : ""}>${escapeHtml(e.subject)} (${fmtDate(e.date)})</option>`).join("");
+  const [a, b] = tempPins || [];
+  $("pinFields").innerHTML = `
+    <div class="sectionhead" style="margin-top:20px"><h2>HOME COUNTDOWN CARDS</h2><span>Choose 2 papers</span></div>
+    <div class="tfield"><label>Card 1</label><select id="pin1">${opts(a)}</select></div>
+    <div class="tfield"><label>Card 2</label><select id="pin2">${opts(b)}</select></div>`;
+}
+window.addExamRow = function(){
+  syncTempExamsFromInputs();
+  tempExams.push({id: Date.now() + tempExams.length, date: localDayKey(new Date(Date.now() + 14 * 86400000)), time: "10:30", subject: "New subject"});
+  renderExamFields();
+  const last = document.querySelector(`[data-subject="${tempExams.length - 1}"]`);
+  if(last){ last.scrollIntoView({block:"center"}); last.focus(); last.select(); }
+};
+window.removeExamRow = function(i){
+  syncTempExamsFromInputs();
+  if(tempExams.length <= 1){ alert("Keep at least one exam paper."); return; }
+  tempExams.splice(i, 1);
+  renderExamFields();
+};
+function openModal(){
+  tempExams = exams.map(e => ({...e}));
+  const pe = pinnedExams();
+  tempPins = [pe[0] ? pe[0].id : "", pe[1] ? pe[1].id : ""];
+  renderExamFields();
+  renderSubjectManager();
+  tempReminderTimes = [...reminderTimes];
+  renderModalReminders();
+  $("modal").classList.add("show");
+}
+$("settingsBtn").onclick = openModal;
+$("editBtn").onclick = openModal;
+$("closeModal").onclick = () => $("modal").classList.remove("show");
+$("saveBtn").onclick = () => {
+  syncTempExamsFromInputs();
+  exams = tempExams.map(e => ({...e, subject: e.subject || "Subject", date: e.date || localDayKey(new Date()), time: e.time || "10:30"}));
+  const ids = (tempPins || []).filter(Boolean);
+  if(ids.length === 2){ pinnedIds = ids; localStorage.setItem("pinnedExams2027", JSON.stringify(pinnedIds)); }
+  syncTempRemindersFromInputs();
+  reminderTimes = [...new Set(tempReminderTimes.filter(Boolean))].sort();
+  localStorage.setItem("reminderTimes", JSON.stringify(reminderTimes));
+  saveAllState();
+  $("modal").classList.remove("show");
+  try{ scheduleSmartStudyNotifications(true); }catch(e){}
+};
+
+/* ---------- STUDY TIMER ---------- */
+let timerLog = (() => { try{ const v = JSON.parse(localStorage.getItem("timerLog2027") || "[]"); return Array.isArray(v) ? v : []; }catch(e){ return []; } })();
+let timerState = (() => { try{ return JSON.parse(localStorage.getItem("timerState2027") || "null"); }catch(e){ return null; } })();
+let timerDraft = {mode: "down", minutes: 25};
+const NativeX = () => (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.ExamNative) || null;
+const LocalN = () => (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) || null;
+
+function fmtHMS(sec){ sec = Math.max(0, Math.floor(sec)); const h = Math.floor(sec / 3600), m = Math.floor(sec / 60) % 60, s = sec % 60; return (h ? pad2(h) + ":" : "") + pad2(m) + ":" + pad2(s); }
+function fmtHM(sec){ sec = Math.max(0, Math.floor(sec)); const h = Math.floor(sec / 3600), m = Math.floor(sec / 60) % 60; return h ? `${h}h ${m}m` : `${m}m`; }
+function saveTimerState(){ if(timerState) localStorage.setItem("timerState2027", JSON.stringify(timerState)); else localStorage.removeItem("timerState2027"); }
+function saveTimerLog(){ localStorage.setItem("timerLog2027", JSON.stringify(timerLog)); }
+function timerElapsedMs(){ return timerState ? timerState.accMs + (timerState.running ? Date.now() - timerState.startedAt : 0) : 0; }
+function daySecs(day){ let s = timerLog.filter(x => x.day === day).reduce((a, x) => a + x.secs, 0); if(timerState && localDayKey(new Date(timerState.beganAt || Date.now())) === day) s += Math.floor(timerElapsedMs() / 1000); return s; }
+function lastDays(n){ const out = []; for(let i = 0; i < n; i++) out.push(localDayKey(new Date(Date.now() - i * 86400000))); return out; }
+
+async function timerNativeStart(){
+  try{
+    if(!timerState) return;
+    const n = NativeX(), ln = LocalN(), down = timerState.mode === "down";
+    if(ln){ const p = await ln.checkPermissions(); if(p.display !== "granted") await ln.requestPermissions(); }
+    if(n){
+      const base = down ? Date.now() + (timerState.targetMs - timerElapsedMs()) : Date.now() - timerElapsedMs();
+      n.timerStart({base, countdown: down, title: (timerState.subject || "Study") + (down ? " · Focus" : " · Stopwatch")});
+    }
+    if(down && ln){
+      const remain = timerState.targetMs - timerElapsedMs();
+      await ln.cancel({notifications: [{id: 9001}]});
+      if(remain > 1500) await ln.schedule({notifications: [{id: 9001, title: "⏱️ Timer complete", body: `${timerState.subject}: your session is done. Great work!`, schedule: {at: new Date(Date.now() + remain), allowWhileIdle: true}}]});
+    }
+  }catch(e){}
+}
+async function timerNativeStop(){
+  try{ const n = NativeX(), ln = LocalN(); if(n) n.timerStop(); if(ln) await ln.cancel({notifications: [{id: 9001}]}); }catch(e){}
+}
+function beep(){
+  try{
+    const C = window.AudioContext || window.webkitAudioContext; if(!C) return;
+    const ctx = new C(); [0, .35, .7].forEach(t => { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = 880; o.connect(g); g.connect(ctx.destination); g.gain.setValueAtTime(.25, ctx.currentTime + t); g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + t + .3); o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + .3); });
+  }catch(e){}
+}
+function readTimerDraft(){
+  timerDraft.minutes = Math.min(600, Math.max(1, Number($("timerMinutes").value || 25)));
+}
+function timerStart(){
+  readTimerDraft();
+  timerState = {
+    id: "t" + Date.now().toString(36), mode: timerDraft.mode, subject: $("timerSubject").value || "Study", note: ($("timerNote").value || "").trim(),
+    targetMs: timerDraft.mode === "down" ? timerDraft.minutes * 60000 : 0, accMs: 0, startedAt: Date.now(), beganAt: Date.now(), running: true
+  };
+  saveTimerState(); timerNativeStart(); renderTimer(); tickTimer();
+}
+function timerPause(){
+  if(!timerState || !timerState.running) return;
+  timerState.accMs += Date.now() - timerState.startedAt; timerState.running = false;
+  saveTimerState(); timerNativeStop(); renderTimer(); tickTimer();
+}
+function timerResume(){
+  if(!timerState || timerState.running) return;
+  timerState.startedAt = Date.now(); timerState.running = true;
+  saveTimerState(); timerNativeStart(); renderTimer(); tickTimer();
+}
+function timerSaveSession(secs){
+  const day = localDayKey(new Date());
+  timerLog.unshift({id: timerState.id, subject: timerState.subject, note: timerState.note || "", mode: timerState.mode, secs: Math.round(secs), end: new Date().toISOString(), day});
+  timerLog = timerLog.slice(0, 2000); saveTimerLog();
+  const e = getPlannerDay(day);
+  e.loggedHours = Math.round((Number(e.loggedHours || 0) + secs / 3600) * 100) / 100;
+}
+function timerStop(auto){
+  if(!timerState) return;
+  let secs = timerElapsedMs() / 1000;
+  if(timerState.mode === "down") secs = Math.min(secs, timerState.targetMs / 1000);
+  const had = timerState;
+  if(secs >= 10) timerSaveSession(secs);
+  else if(!auto) alert("Session shorter than 10 seconds, not saved.");
+  timerState = null; saveTimerState(); timerNativeStop();
+  if(auto){
+    beep();
+    try{ if("Notification" in window && Notification.permission === "granted") new Notification("⏱️ Timer complete", {body: had.subject + ": session finished!", icon: "icon.svg", tag: "exam-timer"}); }catch(e){}
+  }
+  saveAllState();
+}
+function timerDiscard(){
+  if(!timerState) return;
+  if(!confirm("Discard this session without saving?")) return;
+  timerState = null; saveTimerState(); timerNativeStop(); renderTimer(); tickTimer();
+}
+function tickTimer(){
+  if(!$("timerFace")) return;
+  const face = $("timerFace");
+  if(!timerState){
+    if(timerDraft.mode === "down") face.textContent = fmtHMS((Number($("timerMinutes").value) || 25) * 60); else face.textContent = "00:00";
+    face.className = "timerface"; $("timerBar").style.width = "0%"; $("timerStatus").textContent = "Ready";
+  }else{
+    const el = timerElapsedMs();
+    if(timerState.mode === "down"){
+      const left = timerState.targetMs - el;
+      if(left <= 0 && timerState.running){ timerStop(true); return; }
+      face.textContent = fmtHMS(left / 1000);
+      $("timerBar").style.width = Math.min(100, Math.round(el / timerState.targetMs * 100)) + "%";
+    }else{
+      face.textContent = fmtHMS(el / 1000); $("timerBar").style.width = "100%";
+    }
+    face.className = "timerface " + (timerState.running ? "run" : "paused");
+    $("timerStatus").textContent = (timerState.running ? "Running · " : "Paused · ") + timerState.subject + (timerState.note ? " · " + timerState.note : "");
+  }
+  const t = daySecs(localDayKey(new Date()));
+  $("timerTodayTotal").textContent = "Today: " + fmtHM(t);
+  $("navTimerBadge").textContent = fmtHM(t);
+}
+function renderTimer(){
+  if(!$("view-timer")) return;
+  const idle = !timerState, running = timerState && timerState.running;
+  $("timerSetup").hidden = !idle;
+  $("timerStartBtn").hidden = !idle; $("timerPauseBtn").hidden = !running; $("timerResumeBtn").hidden = !(timerState && !timerState.running);
+  $("timerStopBtn").hidden = idle; $("timerDiscardBtn").hidden = !(timerState && !timerState.running);
+  $("timerModeDown").classList.toggle("active", timerDraft.mode === "down"); $("timerModeUp").classList.toggle("active", timerDraft.mode === "up");
+  $("timerPresetBox").hidden = timerDraft.mode !== "down";
+  $("timerPresets").innerHTML = [15, 25, 45, 60, 90].map(m => `<button type="button" class="chip ${Number($("timerMinutes").value) === m ? "active" : ""}" data-min="${m}">${m} min</button>`).join("");
+  const today = localDayKey(new Date()), week = lastDays(7);
+  const bySubject = (days) => { const m = {}; timerLog.filter(x => days.includes(x.day)).forEach(x => { m[x.subject] = (m[x.subject] || 0) + x.secs; }); return m; };
+  const weekTotal = timerLog.filter(x => week.includes(x.day)).reduce((a, x) => a + x.secs, 0);
+  $("timerTodayBig").textContent = fmtHM(daySecs(today)); $("timerWeekBig").textContent = fmtHM(weekTotal);
+  const wk = bySubject(week), max = Math.max(1, ...Object.values(wk));
+  $("timerSubjectBars").innerHTML = Object.keys(wk).length ? Object.entries(wk).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<div class="subbar"><div class="row"><span>${escapeHtml(k)}</span><b>${fmtHM(v)}</b></div><div class="progress"><i style="width:${Math.round(v / max * 100)}%"></i></div></div>`).join("") : `<div class="sub">No sessions yet. Start the timer to see your study time by subject.</div>`;
+  const todays = timerLog.filter(x => x.day === today);
+  $("timerSessionList").innerHTML = todays.length ? todays.map(x => `<div class="sess"><div style="flex:1"><b>${escapeHtml(x.subject)} · ${fmtHM(x.secs)}</b><small>${new Date(x.end).toLocaleTimeString("en-IN", {hour: "2-digit", minute: "2-digit", hour12: true})}${x.note ? " · " + escapeHtml(x.note) : ""} · ${x.mode === "down" ? "Countdown" : "Stopwatch"}</small></div><button type="button" class="danger sm" onclick="deleteSession('${x.id}')">✕</button></div>`).join("") : `<div class="sub">No sessions today.</div>`;
+  tickTimer();
+}
+window.deleteSession = function(id){
+  const x = timerLog.find(s => s.id === id); if(!x) return;
+  if(!confirm("Delete this session? Its hours are removed from the Planner too.")) return;
+  timerLog = timerLog.filter(s => s.id !== id); saveTimerLog();
+  const e = getPlannerDay(x.day); e.loggedHours = Math.max(0, Math.round((Number(e.loggedHours || 0) - x.secs / 3600) * 100) / 100);
+  saveAllState();
+};
+$("timerModeDown").onclick = () => { timerDraft.mode = "down"; renderTimer(); };
+$("timerModeUp").onclick = () => { timerDraft.mode = "up"; renderTimer(); };
+$("timerPresets").addEventListener("click", e => { const b = e.target.closest("[data-min]"); if(!b) return; $("timerMinutes").value = b.dataset.min; renderTimer(); });
+$("timerMinutes").addEventListener("input", () => { renderTimer(); });
+$("timerStartBtn").onclick = timerStart; $("timerPauseBtn").onclick = timerPause; $("timerResumeBtn").onclick = timerResume;
+$("timerStopBtn").onclick = () => timerStop(false); $("timerDiscardBtn").onclick = timerDiscard;
+document.querySelectorAll('[data-tab="timer"]').forEach(btn => btn.addEventListener("click", () => switchTab("timer")));
+
+/* ---------- home-screen widgets: add popup (Android app) ---------- */
+function openWidgetPrompt(auto){
+  const n = NativeX();
+  $("widgetMsg").textContent = "";
+  $("widgetModal").classList.add("show");
+  if(n && n.canPinWidgets){
+    n.canPinWidgets().then(r => { if(!r.supported) $("widgetMsg").textContent = "Your launcher can't add widgets from here. Long-press an empty spot on the home screen > Widgets > Exam Tracker."; }).catch(() => {});
+  }
+}
+document.querySelectorAll("[data-widget]").forEach(b => b.addEventListener("click", () => {
+  const n = NativeX();
+  if(!n || !n.pinWidget){ $("widgetMsg").textContent = "Widgets are available in the installed Android app."; return; }
+  n.pinWidget({type: b.dataset.widget}).then(r => {
+    $("widgetMsg").textContent = r.requested ? "Confirm in the pop-up to place the widget." : "Couldn't open the pop-up. Long-press an empty spot on the home screen > Widgets > Exam Tracker.";
+  }).catch(() => { $("widgetMsg").textContent = "Long-press an empty spot on the home screen > Widgets > Exam Tracker."; });
+}));
+$("widgetLater").onclick = () => $("widgetModal").classList.remove("show");
+$("widgetDone").onclick = () => { localStorage.setItem("widgetPromptDone2027", "1"); $("widgetModal").classList.remove("show"); };
+function renderWidgetSettings(){
+  const el = $("widgetSettings"); if(!el) return;
+  el.innerHTML = NativeX() ? `<div class="sectionhead" style="margin-top:20px"><h2>HOME SCREEN WIDGETS</h2><span>Android app</span></div><button type="button" class="primary" onclick="$('modal').classList.remove('show');openWidgetPrompt(false)">＋ Add widgets to home screen</button>` : "";
+}
+const _openModalV4 = openModal;
+openModal = function(){ _openModalV4(); renderWidgetSettings(); };
+$("settingsBtn").onclick = openModal; $("editBtn").onclick = openModal;
+setTimeout(() => { if(NativeX() && !localStorage.getItem("widgetPromptDone2027")) openWidgetPrompt(true); }, 2500);
+setInterval(tickTimer, 500);
+
+
+/* ==========================================================================
+   14. NOTIFICATIONS, PWA INSTALL & NETWORK STATUS (PRESERVED)
+   ========================================================================== */
+$("notifyBtn").onclick = async () => {
+  if(!("Notification" in window)){
+    alert("Notifications are not supported by this browser.");
+    return;
+  }
+  const p = await Notification.requestPermission();
+  $("notifyBtn").textContent = p === "granted" ? "Enabled" : p;
+  if(p === "granted"){
+    notify("Notifications enabled", "Exam & study reminders are active on this device.");
+  }
+};
+if("Notification" in window && Notification.permission === "granted"){
+  $("notifyBtn").textContent = "Enabled";
+}
+
+$("reminderBtn").onclick = () => {
+  reminders = !reminders;
+  localStorage.setItem("dailyReminders", reminders ? "on" : "off");
+  renderScheduleAndReminders();
+};
+
+$("cacheBtn").onclick = async () => {
+  if("serviceWorker" in navigator){
+    try{
+      await navigator.serviceWorker.register("./sw.js");
+      alert("Offline app files are ready and cached on this device.");
+    }catch(e){
+      alert("Service worker setup requires HTTPS hosting or localhost.");
+    }
+  } else {
+    alert("Service workers are not supported in this browser.");
+  }
+};
+
+let deferredPrompt;
+$("installBtn").hidden = true;
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  $("installBtn").hidden = false;
+});
+$("installBtn").onclick = async () => {
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    $("installBtn").hidden = true;
+  } else {
+    alert("Use Chrome menu → Add to Home screen / Install app.");
+  }
+};
+
+function net(){
+  $("net").textContent = navigator.onLine ? "● ONLINE · OFFLINE READY" : "● OFFLINE MODE";
+  $("net").style.color = navigator.onLine ? "#75dfae" : "#ffb27f";
+}
+window.addEventListener("online", net);
+window.addEventListener("offline", net);
+net();
+
+if("serviceWorker" in navigator && location.protocol.startsWith("http")){
+  navigator.serviceWorker.register("./sw.js").catch(() => {});
+}
+
+/* ==========================================================================
+   15. MASTER RENDER LOOP
+   ========================================================================== */
+function renderAll(){
+  const stats = computeStats();
+  $("navChapBadge").textContent = `${stats.completedChapters}/${chapters.length}`;
+  $("navRevBadge").textContent = `${stats.rev1Pct}%`;
+  $("navTaskBadge").textContent = `${stats.pendingToday}`;
+  $("navMockBadge").textContent = `${mockTests.length}`;
+
+  fillSubjectSelects();
+  updateCountdowns();
+  renderScheduleAndReminders();
+  renderRoadmap();
+  renderChapters();
+  renderRevision();
+  renderPlanner();
+  renderTimer();
+  renderMocks();
+  renderDashboard();
+}
+
+// Handle URL hash deep-linking (from PWA shortcuts or Android widget intents)
+if(location.hash && location.hash.length > 1){
+  const targetTab = location.hash.slice(1);
+  if(document.getElementById("view-" + targetTab)){
+    switchTab(targetTab);
+  }
+}
+
+syncWidgetBridge();
+renderAll();
+setInterval(() => {
+  updateCountdowns();
+  checkReminders();
+}, 1000);
+
+document.addEventListener("visibilitychange", () => {
+  if(!document.hidden){
+    renderAll();
+    checkReminders();
+  }
+});
+</script>
+</body>
+</html>
+<script>
+  // 1. Dynamic Multi-Interval Native Notifications (10m, 5m, 4m, 2m, 1m before + Exact Time)
+  async function scheduleSmartStudyNotifications(silent) {
+    silent = silent === true;
+    const LN_ = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications;
+    if (!LN_) {
+      if (!silent) alert('Yeh feature sirf installed APK mein kaam karega.');
+      return;
+    }
+
+    let perm = await LN_.checkPermissions();
+    if (perm.display !== 'granted') {
+      if (silent) return;
+      perm = await LN_.requestPermissions();
+    }
+    if (perm.display !== 'granted') {
+      alert('Permission denied! Phone Settings > Apps > Exam Tracker > Notifications ko Allow karein.');
+      return;
+    }
+
+    // Purane study/exam alerts hatao (timer alert id 9001+ ko mat chhedo)
+    const pending = await LN_.getPending();
+    const old = (pending.notifications || []).filter(n => Number(n.id) < 9000);
+    if (old.length > 0) await LN_.cancel({ notifications: old.map(n => ({ id: n.id })) });
+
+    const list = [];
+    let notifId = 100;
+    const targetTimes = (reminders ? reminderTimes : []).filter(Boolean);
+    const offsets = [10, 5, 4, 2, 1, 0];
+
+    targetTimes.forEach((timeStr) => {
+      const [baseH, baseM] = timeStr.split(':').map(Number);
+      offsets.forEach((offsetMin) => {
+        let totalMinutes = baseH * 60 + baseM - offsetMin;
+        if (totalMinutes < 0) totalMinutes += 24 * 60;
+        const msgBody = offsetMin === 0
+          ? `Ab padhne ka exact time (${timeStr}) ho gaya hai! Turant book kholein.`
+          : `Sirf ${offsetMin} minute bache hain (${timeStr} ke study session mein)! Taiyar ho jayein.`;
+        list.push({
+          id: notifId++,
+          title: offsetMin === 0 ? "Study Time Started!" : `Study Alert • ${offsetMin} min left`,
+          body: msgBody,
+          schedule: { on: { hour: Math.floor(totalMinutes / 60) % 24, minute: totalMinutes % 60 }, repeats: true, allowWhileIdle: true }
+        });
+      });
+    });
+
+    // Har aane wale paper ke liye exam alerts (7 din, 3 din, 1 din, 3 ghante, 1 ghanta, 15 minute pehle)
+    const nowMs = Date.now();
+    let ei = 0;
+    sortedExams().forEach((e) => {
+      const t = examDate(e).getTime();
+      [["7 din", 7 * 864e5], ["3 din", 3 * 864e5], ["1 din", 864e5], ["3 ghante", 3 * 36e5], ["1 ghanta", 36e5], ["15 minute", 15 * 6e4]].forEach(([label, ms], k) => {
+        const at = t - ms;
+        if (at > nowMs + 5000) {
+          list.push({
+            id: 2000 + ei * 10 + k,
+            title: `Exam alert: ${e.subject}`,
+            body: `Aapka paper ${label} mein hai (${fmtDate(e.date)} · ${e.time || "10:30"}).`,
+            schedule: { at: new Date(at), allowWhileIdle: true }
+          });
+        }
+      });
+      ei++;
+    });
+
+    if (list.length) await LN_.schedule({ notifications: list });
+    syncAllWidgetsData(targetTimes);
+    if (!silent) alert(`Notifications Set! Study reminders (${targetTimes.join(', ') || 'off'}) aur har paper ke exam alerts schedule ho gaye.`);
+  }
+
+  // 2. Sync All Data to the 3 Android Home Screen Widgets (live from your own schedule)
+  let lastWidgetJson = "";
+  function buildWidgetBundle(remindersList) {
+    const now = new Date();
+    const nowMs = now.getTime();
+    const list = sortedExams();
+    const next = list.find(e => examDate(e) > now);
+    const done = list.filter(e => examDate(e) <= now).length;
+    const up = list.length - done;
+    const fmtD = e => examDate(e).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+    const fmtT = e => examDate(e).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const pin = e => e ? { subject: e.subject, at: examDate(e).getTime(), date: fmtD(e), time: fmtT(e) } : null;
+    const [p1, p2] = pinnedExams();
+    const todaySec = typeof daySecs === 'function' ? daySecs(localDayKey(now)) : 0;
+    const times = (remindersList && remindersList.length) ? remindersList : (reminders ? reminderTimes : []);
+    return {
+      v: 2,
+      nextSubject: next ? next.subject : "Koi paper baaki nahi",
+      nextDate: next ? `${fmtD(next)} ${examDate(next).getFullYear()} • ${fmtT(next)}` : "",
+      nextAt: next ? examDate(next).getTime() : 0,
+      upcomingCount: `${up} Upcoming • ${done} Completed`,
+      upcoming: up, completed: done, total: list.length,
+      pinned: [pin(p1), pin(p2)],
+      datesheet: list.map(e => ({ subject: e.subject, date: fmtD(e), time: fmtT(e), at: examDate(e).getTime() })),
+      todayMin: Math.floor(todaySec / 60),
+      reminders: times.length ? `Alerts: ${times.join(' & ')}` : "Alerts: off"
+    };
+  }
+  function syncAllWidgetsData(remindersList) {
+    try {
+      const json = JSON.stringify(buildWidgetBundle(remindersList));
+      if (json === lastWidgetJson) return;
+      lastWidgetJson = json;
+      const cap = window.Capacitor;
+      if (cap && cap.Plugins && cap.Plugins.Preferences) {
+        Promise.resolve(cap.Plugins.Preferences.set({ key: 'exam_widgets_bundle', value: json })).then(() => {
+          try { if (cap.Plugins.ExamNative) cap.Plugins.ExamNative.refreshWidgets(); } catch (e) {}
+        }).catch(() => {});
+      }
+    } catch (e) {}
+  }
+
+  // 3. Settings Customization (Change Logo & Change Font) + Footer Credit
+  function applySavedCustomization() {
+    const savedFont = localStorage.getItem('custom_app_font');
+    if (savedFont) {
+      document.body.style.fontFamily = savedFont;
+    }
+
+    const savedLogo = localStorage.getItem('custom_app_logo');
+    if (savedLogo) {
+      let headerLogo = document.getElementById('customHeaderLogo');
+      if (!headerLogo) {
+        const headerBrand = document.querySelector('header .brand') || document.querySelector('header');
+        if (headerBrand) {
+          headerLogo = document.createElement('img');
+          headerLogo.id = 'customHeaderLogo';
+          headerLogo.style.cssText = 'width:32px; height:32px; border-radius:8px; object-fit:cover; margin-right:8px; border:1px solid #FF7A00; vertical-align:middle;';
+          headerBrand.prepend(headerLogo);
+        }
+      }
+      if (headerLogo) {
+        headerLogo.src = savedLogo;
+      }
+    }
+  }
+
+  function injectSettingsAndFooter() {
+    // 1. Footer mein "Made by Vivek Yadav" add karna
+    const mainEl = document.querySelector('main') || document.body;
+    if (!document.getElementById('vivekCreditFooter')) {
+      const creditDiv = document.createElement('div');
+      creditDiv.id = 'vivekCreditFooter';
+      creditDiv.style.cssText = 'text-align:center; padding:20px 10px 90px 10px; color:#FF7A00; font-size:13px; font-weight:bold; letter-spacing:0.5px;';
+      creditDiv.textContent = 'Made by Vivek Yadav';
+      mainEl.appendChild(creditDiv);
+    }
+
+    // 2. Sirf asli Settings Modal (#modal .modalCard) ke andar options daalna
+    const modalCard = document.querySelector('#modal .modalCard');
+    if (modalCard && !document.getElementById('customAppearanceBox')) {
+      const box = document.createElement('div');
+      box.id = 'customAppearanceBox';
+      box.style.cssText = 'background:#181B20; border:1px solid #2A2F37; border-radius:12px; padding:14px; margin-top:14px; color:#fff; width:100%; box-sizing:border-box;';
+      box.innerHTML = `
+        <div style="font-size:12px; font-weight:bold; color:#FF7A00; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px;">App Appearance &amp; Customization</div>
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid #2A2F37;">
+          <div style="flex:1;">
+            <div style="font-size:14px; font-weight:600;">Change Your App Logo</div>
+            <div style="font-size:11px; color:#A0AAB5;">Gallery se apna custom logo lagayein</div>
+          </div>
+          <label style="background:#FF7A00; color:#fff; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:bold; cursor:pointer; white-space:nowrap;">
+            Select Image
+            <input type="file" id="logoUploadInput" accept="image/*" style="display:none;">
+          </label>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+          <div style="flex:1;">
+            <div style="font-size:14px; font-weight:600;">Change Your Font</div>
+            <div style="font-size:11px; color:#A0AAB5;">App ka font style badlein</div>
+          </div>
+          <select id="fontSelectInput" style="background:#121417; color:#fff; border:1px solid #2A2F37; padding:8px 10px; border-radius:8px; font-size:12px; max-width:140px;">
+            <option value="system-ui, -apple-system, sans-serif">Default Modern</option>
+            <option value="'Georgia', serif">Classic Serif</option>
+            <option value="'Courier New', monospace">Developer Mono</option>
+            <option value="'Trebuchet MS', sans-serif">Clean Rounded</option>
+          </select>
+        </div>
+      `;
+
+      const modalActions = modalCard.querySelector('.row, button:last-of-type');
+      if (modalActions && modalActions.parentElement === modalCard) {
+        modalCard.insertBefore(box, modalActions);
+      } else {
+        modalCard.appendChild(box);
+      }
+
+      // Logo Upload Handler
+      const logoInput = document.getElementById('logoUploadInput');
+      if (logoInput) {
+        logoInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+            localStorage.setItem('custom_app_logo', evt.target.result);
+            applySavedCustomization();
+            alert('App Logo successfully update ho gaya!');
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // Font Change Handler
+      const fontSelect = document.getElementById('fontSelectInput');
+      if (fontSelect) {
+        const savedFont = localStorage.getItem('custom_app_font');
+        if (savedFont) fontSelect.value = savedFont;
+
+        fontSelect.addEventListener('change', (e) => {
+          localStorage.setItem('custom_app_font', e.target.value);
+          applySavedCustomization();
+        });
+      }
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('button').forEach(btn => {
+      if (btn.textContent.trim() === 'Enable') {
+        btn.onclick = () => scheduleSmartStudyNotifications(false);
+      }
+    });
+
+    // APK mein har baar khulne par exam alerts taaza karo (permission mili ho tabhi, chupchaap)
+    setTimeout(() => { try { scheduleSmartStudyNotifications(true); } catch (e) {} }, 2500);
+
+    applySavedCustomization();
+    injectSettingsAndFooter();
+    syncAllWidgetsData();
+  });
+
+  setInterval(() => syncAllWidgetsData(), 60000);
+</script>
